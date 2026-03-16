@@ -5,7 +5,6 @@ module rk4_clock_divider (
     input  wire reset,
     output reg  clk_out
 );
-
     reg [5:0] counter;
     parameter div_count = 6'd49;
 
@@ -20,5 +19,4 @@ module rk4_clock_divider (
             counter <= counter + 1;
         end
     end
-
 endmodule

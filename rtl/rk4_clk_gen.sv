@@ -7,7 +7,6 @@ module rk4_clk_gen (
     input  wire       mux_in,
     output wire       out
 );
-
     wire osc_out1, osc_out2, osc_out3;
     reg  osc_out;
 
@@ -30,5 +29,4 @@ module rk4_clk_gen (
         .reset   (rst),
         .clk_out (out)
     );
-
 endmodule
