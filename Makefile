@@ -1,3 +1,5 @@
+XRUN     = xrun
+
 RTL_DIR  = rtl
 RTL_SRC  = $(RTL_DIR)/rk4_top.sv           \
            $(RTL_DIR)/rk4_clk_gen.sv        \
@@ -14,23 +16,33 @@ RTL_SRC  = $(RTL_DIR)/rk4_top.sv           \
 
 TOP      = rk4_top
 
-# Icarus Verilog
-VVP      = sim.vvp
-VCD      = dump.vcd
+XRUN_ARGS = -sv -timescale 1ns/1ps -access +rwc
 
-.PHONY: compile sim wave clean lint
+.PHONY: compile sim gui lint uvm uvm-gui uvm-clean clean clean-all
 
 compile:
-	iverilog -g2012 -o $(VVP) -s $(TOP) $(RTL_SRC)
+	$(XRUN) -compile $(XRUN_ARGS) -top $(TOP) $(RTL_SRC)
 
-sim: compile
-	vvp $(VVP)
+sim:
+	$(XRUN) $(XRUN_ARGS) -top $(TOP) $(RTL_SRC)
 
-wave: sim
-	open -a gtkwave $(VCD) 2>/dev/null || gtkwave $(VCD)
+gui:
+	$(XRUN) $(XRUN_ARGS) -top $(TOP) $(RTL_SRC) -gui
 
 lint:
-	verilator --lint-only -Wall --top-module $(TOP) $(RTL_SRC)
+	$(XRUN) -lint $(XRUN_ARGS) -top $(TOP) $(RTL_SRC)
+
+# --- UVM testbench ---
+uvm:
+	$(MAKE) -C tb/uvm sim
+
+uvm-gui:
+	$(MAKE) -C tb/uvm gui
+
+uvm-clean:
+	$(MAKE) -C tb/uvm clean
 
 clean:
-	rm -f $(VVP) $(VCD)
+	rm -rf xcelium.d INCA_libs xrun.log xrun.history waves.shm
+
+clean-all: clean uvm-clean
