@@ -20,10 +20,15 @@ class rk4_base_driver extends uvm_driver #(rk4_seq_item);
     virtual task run_phase(uvm_phase phase);
         rk4_seq_item item;
         vif.uart_rx = 1'b1;
+        `uvm_info(get_type_name(),
+            $sformatf("run_phase started, baud_div=%0d", baud_div), UVM_FULL)
         forever begin
             seq_item_port.get_next_item(item);
             `uvm_info(get_type_name(), {"Driving: ", item.convert2string()}, UVM_HIGH)
             drive_item(item);
+            `uvm_info(get_type_name(),
+                $sformatf("item_done for cmd=%s  payload_len=%0d",
+                    item.cmd_type.name(), item.payload.size()), UVM_FULL)
             seq_item_port.item_done();
         end
     endtask
@@ -37,14 +42,31 @@ class rk4_base_driver extends uvm_driver #(rk4_seq_item);
             default:           cmd_byte = 8'hFF;
         endcase
 
-        if (item.cmd_type != RK4_CMD_RAW_BYTES)
-            send_uart_byte(cmd_byte);
+        `uvm_info(get_type_name(),
+            $sformatf("drive_item: cmd=%s  cmd_byte=0x%02h  payload_len=%0d",
+                item.cmd_type.name(), cmd_byte, item.payload.size()), UVM_FULL)
 
-        foreach (item.payload[i])
+        if (item.cmd_type != RK4_CMD_RAW_BYTES) begin
+            `uvm_info(get_type_name(),
+                $sformatf("TX cmd byte 0x%02h @ %0t", cmd_byte, $time), UVM_FULL)
+            send_uart_byte(cmd_byte);
+        end
+
+        foreach (item.payload[i]) begin
+            `uvm_info(get_type_name(),
+                $sformatf("TX payload[%0d]=0x%02h @ %0t", i, item.payload[i], $time), UVM_FULL)
             send_uart_byte(item.payload[i]);
+        end
+
+        `uvm_info(get_type_name(),
+            $sformatf("drive_item complete for cmd=%s @ %0t",
+                item.cmd_type.name(), $time), UVM_FULL)
     endtask
 
     virtual task send_uart_byte(input bit [7:0] data);
+        `uvm_info(get_type_name(),
+            $sformatf("send_uart_byte START 0x%02h @ %0t", data, $time), UVM_FULL)
+
         // Start bit
         vif.uart_rx = 1'b0;
         repeat (baud_div) @(posedge vif.clk);
@@ -58,6 +80,9 @@ class rk4_base_driver extends uvm_driver #(rk4_seq_item);
         // Stop bit
         vif.uart_rx = 1'b1;
         repeat (baud_div) @(posedge vif.clk);
+
+        `uvm_info(get_type_name(),
+            $sformatf("send_uart_byte DONE  0x%02h @ %0t", data, $time), UVM_FULL)
     endtask
 
 endclass

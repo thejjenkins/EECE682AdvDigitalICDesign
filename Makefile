@@ -39,6 +39,12 @@ uvm:
 uvm-gui:
 	$(MAKE) -C tb/uvm gui
 
+uvm-full:
+	$(MAKE) -C tb/uvm uvm-full
+
+uvm-full-gui:
+	$(MAKE) -C tb/uvm uvm-full-gui
+
 uvm-clean:
 	$(MAKE) -C tb/uvm clean
 

@@ -204,6 +204,7 @@ assign alu_b = sel_b[3] ? const_b : rf_rd_data_b;
 reg [63:0] tx_shift;
 reg [3:0]  tx_bytes_left;
 reg [1:0]  tx_mode;
+reg        tx_pending;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -213,12 +214,17 @@ always @(posedge clk or negedge rst_n) begin
         tx_byte       <= 8'd0;
         tx_pair_sent  <= 1'b0;
         tx_mode       <= 2'd0;
+        tx_pending    <= 1'b0;
     end else begin
         tx_valid     <= 1'b0;
         tx_pair_sent <= 1'b0;
 
+        if (tx_pending && !tx_ready)
+            tx_pending <= 1'b0;
+
         case (tx_mode)
         2'd0: begin
+            tx_pending <= 1'b0;
             if (fsm_tx_pair) begin
                 tx_shift <= {rf_y_out[31:24], rf_y_out[23:16],
                              rf_y_out[15:8],  rf_y_out[7:0],
@@ -237,11 +243,12 @@ always @(posedge clk or negedge rst_n) begin
             if (tx_bytes_left == 4'd0) begin
                 tx_pair_sent <= 1'b1;
                 tx_mode      <= 2'd0;
-            end else if (tx_ready) begin
+            end else if (tx_ready && !tx_pending) begin
                 tx_byte       <= tx_shift[7:0];
                 tx_valid      <= 1'b1;
                 tx_shift      <= {8'd0, tx_shift[63:8]};
                 tx_bytes_left <= tx_bytes_left - 4'd1;
+                tx_pending    <= 1'b1;
             end
         end
 

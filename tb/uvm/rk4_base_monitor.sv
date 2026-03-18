@@ -23,16 +23,27 @@ class rk4_base_monitor extends uvm_monitor;
     virtual task run_phase(uvm_phase phase);
         @(posedge vif.rst_n);
         `uvm_info(get_type_name(), "Reset released, monitor active", UVM_MEDIUM)
+        `uvm_info(get_type_name(),
+            $sformatf("Monitor config: baud_div=%0d", baud_div), UVM_FULL)
         forever begin
             rk4_seq_item item;
             bit [7:0]    rx_byte;
 
+            `uvm_info(get_type_name(),
+                $sformatf("Waiting for start bit on uart_tx @ %0t", $time), UVM_FULL)
+
             receive_uart_byte(rx_byte);
+
+            `uvm_info(get_type_name(),
+                $sformatf("RX byte 0x%02h captured @ %0t", rx_byte, $time), UVM_FULL)
 
             item = rk4_seq_item::type_id::create("mon_item");
             item.cmd_type   = RK4_CMD_RAW_BYTES;
             item.payload    = new[1];
             item.payload[0] = rx_byte;
+
+            `uvm_info(get_type_name(),
+                $sformatf("Writing byte 0x%02h to analysis port", rx_byte), UVM_FULL)
             ap.write(item);
         end
     endtask
@@ -40,6 +51,8 @@ class rk4_base_monitor extends uvm_monitor;
     virtual task receive_uart_byte(output bit [7:0] data);
         // Wait for start bit (falling edge on uart_tx)
         @(negedge vif.uart_tx);
+        `uvm_info(get_type_name(),
+            $sformatf("Negedge uart_tx detected (start bit) @ %0t", $time), UVM_FULL)
 
         // Advance to mid-bit of start bit
         repeat (baud_div / 2) @(posedge vif.clk);
@@ -50,14 +63,23 @@ class rk4_base_monitor extends uvm_monitor;
             return;
         end
 
+        `uvm_info(get_type_name(),
+            $sformatf("Start bit confirmed low, sampling 8 data bits @ %0t", $time), UVM_FULL)
+
         // Sample 8 data bits at mid-bit, LSB first
         for (int i = 0; i < 8; i++) begin
             repeat (baud_div) @(posedge vif.clk);
             data[i] = vif.uart_tx;
+            `uvm_info(get_type_name(),
+                $sformatf("  bit[%0d] = %b  (running data=0x%02h) @ %0t",
+                    i, vif.uart_tx, data, $time), UVM_FULL)
         end
 
         // Advance to mid-bit of stop bit
         repeat (baud_div) @(posedge vif.clk);
+        `uvm_info(get_type_name(),
+            $sformatf("Stop bit sample: uart_tx=%b  final byte=0x%02h @ %0t",
+                vif.uart_tx, data, $time), UVM_FULL)
         if (vif.uart_tx !== 1'b1)
             `uvm_warning(get_type_name(), "Stop bit not detected")
     endtask

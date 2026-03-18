@@ -9,6 +9,8 @@ class rk4_base_sequence extends uvm_sequence #(rk4_seq_item);
     virtual task body();
         rk4_seq_item prog_item, run_item;
 
+        `uvm_info(get_type_name(), "body() — sequence starting", UVM_FULL)
+
         // ---------------------------------------------------------------
         // 1. Load a trivial f-function program
         //
@@ -37,7 +39,12 @@ class rk4_base_sequence extends uvm_sequence #(rk4_seq_item);
         for (int i = 2; i < 32; i++)
             prog_item.payload[i] = 8'h00;
 
+        `uvm_info(get_type_name(),
+            $sformatf("LOAD_PROG item: instr0={0x%02h,0x%02h}  payload_len=%0d",
+                prog_item.payload[0], prog_item.payload[1], prog_item.payload.size()), UVM_FULL)
+
         start_item(prog_item);
+        `uvm_info(get_type_name(), "LOAD_PROG start_item granted", UVM_FULL)
         finish_item(prog_item);
 
         `uvm_info(get_type_name(), "LOAD_PROG sent", UVM_MEDIUM)
@@ -55,10 +62,18 @@ class rk4_base_sequence extends uvm_sequence #(rk4_seq_item);
         run_item.payload[2] = 8'h01;
         run_item.payload[3] = 8'h00;
 
+        `uvm_info(get_type_name(),
+            $sformatf("RUN item: v0={0x%02h,0x%02h,0x%02h,0x%02h}  payload_len=%0d",
+                run_item.payload[0], run_item.payload[1],
+                run_item.payload[2], run_item.payload[3],
+                run_item.payload.size()), UVM_FULL)
+
         start_item(run_item);
+        `uvm_info(get_type_name(), "RUN start_item granted", UVM_FULL)
         finish_item(run_item);
 
         `uvm_info(get_type_name(), "RUN sent (v0 = 1.0 Q16.16)", UVM_MEDIUM)
+        `uvm_info(get_type_name(), "body() — sequence complete", UVM_FULL)
     endtask
 
 endclass

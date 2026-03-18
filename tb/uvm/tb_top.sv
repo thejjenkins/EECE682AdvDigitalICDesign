@@ -6,14 +6,22 @@ module tb_top;
     import rk4_tb_pkg::*;
 
     // ----------------------------------------------------------------
-    //  Clock generation — 50 MHz (20 ns period)
+    //  Simulation parameters — small values for fast simulation,
+    //  matching the proven direct testbench configuration.
     // ----------------------------------------------------------------
-    localparam CLK_PERIOD = 20;
+    localparam integer CLK_FREQ  = 800;
+    localparam integer BAUD_RATE = 100;
+    localparam integer BAUD_DIV  = CLK_FREQ / BAUD_RATE;  // 8
+    localparam integer NUM_DIV   = 5;
+    localparam real    CLK_PER   = 1000.0 / CLK_FREQ;     // 1.25 ns
 
+    // ----------------------------------------------------------------
+    //  Clock generation
+    // ----------------------------------------------------------------
     logic clk;
     initial begin
         clk = 1'b0;
-        forever #(CLK_PERIOD / 2) clk = ~clk;
+        forever #(CLK_PER / 2.0) clk = ~clk;
     end
 
     // ----------------------------------------------------------------
@@ -23,14 +31,11 @@ module tb_top;
 
     // ----------------------------------------------------------------
     //  DUT — rk4_projectile_top
-    //
-    //  NUM_DIV overridden to 5 so the base test finishes quickly.
-    //  Restore to 100 (default) for full-length simulations.
     // ----------------------------------------------------------------
     rk4_projectile_top #(
-        .CLK_FREQ  (50_000_000),
-        .BAUD_RATE (115_200),
-        .NUM_DIV   (5)
+        .CLK_FREQ  (CLK_FREQ),
+        .BAUD_RATE (BAUD_RATE),
+        .NUM_DIV   (NUM_DIV)
     ) dut (
         .clk     (clk),
         .rst_n   (rk4_vif.rst_n),
@@ -43,6 +48,7 @@ module tb_top;
     // ----------------------------------------------------------------
     initial begin
         uvm_config_db#(virtual rk4_if)::set(null, "*", "rk4_vif", rk4_vif);
+        uvm_config_db#(int)::set(null, "*", "baud_div", BAUD_DIV);
         run_test();
     end
 
@@ -50,8 +56,8 @@ module tb_top;
     //  Hard timeout safety net
     // ----------------------------------------------------------------
     initial begin
-        #100ms;
-        `uvm_fatal("TB_TOP", "Global simulation timeout (100 ms)")
+        #10ms;
+        `uvm_fatal("TB_TOP", "Global simulation timeout (10 ms)")
     end
 
     // ----------------------------------------------------------------
