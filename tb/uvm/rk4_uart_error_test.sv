@@ -43,6 +43,15 @@ class rk4_uart_error_test extends rk4_base_test;
         repeat (baud_div * 2) @(posedge vif.clk);
 
         // ---------------------------------------------------------------
+        //  Error injection 3: unknown command byte
+        //  Send 0xFF while protocol is in ST_CMD — hits the default
+        //  branch on line 84 of rk4_uart_protocol.sv.
+        // ---------------------------------------------------------------
+        `uvm_info(get_type_name(), "Injecting unknown command byte 0xFF", UVM_MEDIUM)
+        send_uart_byte(8'hFF);
+        repeat (baud_div * 2) @(posedge vif.clk);
+
+        // ---------------------------------------------------------------
         //  Recovery: run the normal base sequence to prove the DUT
         //  still works after the UART errors.
         // ---------------------------------------------------------------
@@ -52,6 +61,21 @@ class rk4_uart_error_test extends rk4_base_test;
 
         seq = rk4_base_sequence::type_id::create("seq");
         seq.start(env.agent.sqr);
+
+        // ---------------------------------------------------------------
+        //  Error injection 4: back-to-back RUN while FSM is busy
+        //  The base sequence just finished transmitting LOAD_PROG + RUN
+        //  bytes, so the FSM is now processing.  Bit-bang a second RUN
+        //  command immediately — when the 4th v0 byte arrives the
+        //  protocol parser checks if (!fsm_busy) and takes the implicit
+        //  else path on line 118.
+        // ---------------------------------------------------------------
+        `uvm_info(get_type_name(), "Injecting back-to-back RUN while FSM busy", UVM_MEDIUM)
+        send_uart_byte(8'h02);   // CMD_RUN
+        send_uart_byte(8'h00);   // v0[7:0]
+        send_uart_byte(8'h00);   // v0[15:8]
+        send_uart_byte(8'h01);   // v0[23:16]
+        send_uart_byte(8'h00);   // v0[31:24]
 
         fork
             begin
@@ -71,23 +95,26 @@ class rk4_uart_error_test extends rk4_base_test;
         phase.drop_objection(this, "rk4_uart_error_test");
     endtask
 
-    // Send a UART frame with a deliberately bad (LOW) stop bit.
-    virtual task send_byte_bad_stop(input bit [7:0] data);
-        // Start bit
+    virtual task send_uart_byte(input bit [7:0] data);
         vif.uart_rx = 1'b0;
         repeat (baud_div) @(posedge vif.clk);
-
-        // 8 data bits, LSB first
         for (int i = 0; i < 8; i++) begin
             vif.uart_rx = data[i];
             repeat (baud_div) @(posedge vif.clk);
         end
+        vif.uart_rx = 1'b1;
+        repeat (baud_div) @(posedge vif.clk);
+    endtask
 
-        // Bad stop bit (should be 1, we drive 0)
+    virtual task send_byte_bad_stop(input bit [7:0] data);
         vif.uart_rx = 1'b0;
         repeat (baud_div) @(posedge vif.clk);
-
-        // Return line to idle
+        for (int i = 0; i < 8; i++) begin
+            vif.uart_rx = data[i];
+            repeat (baud_div) @(posedge vif.clk);
+        end
+        vif.uart_rx = 1'b0;
+        repeat (baud_div) @(posedge vif.clk);
         vif.uart_rx = 1'b1;
     endtask
 

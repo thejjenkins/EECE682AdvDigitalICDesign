@@ -9,7 +9,7 @@ class rk4_projectile_test extends rk4_base_test;
     localparam int signed INV6_FIXED  = 32'sd10922;
     localparam int signed INV_N_FIXED = 32'sd655;
     localparam int signed INV_G_FIXED = 32'sd6694;
-    localparam int        NUM_DIV     = 5;
+    localparam int        NUM_DIV     = 100;
 
     function new(string name = "rk4_projectile_test", uvm_component parent = null);
         super.new(name, parent);

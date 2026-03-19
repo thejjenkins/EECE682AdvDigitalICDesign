@@ -12,7 +12,7 @@ module tb_top;
     localparam integer CLK_FREQ  = 800;
     localparam integer BAUD_RATE = 100;
     localparam integer BAUD_DIV  = CLK_FREQ / BAUD_RATE;  // 8
-    localparam integer NUM_DIV   = 5;
+    localparam integer NUM_DIV   = 100;
     localparam real    CLK_PER   = 1000.0 / CLK_FREQ;     // 1.25 ns
 
     // ----------------------------------------------------------------
