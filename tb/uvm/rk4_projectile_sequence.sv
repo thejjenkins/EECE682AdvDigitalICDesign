@@ -52,6 +52,22 @@ class rk4_projectile_sequence extends uvm_sequence #(rk4_seq_item);
         for (int i = 1; i < 16; i++) mem[i] = 16'h0000;
     endfunction
 
+    static function void build_abs_half_prog(ref bit [15:0] mem [16]);
+        // f(v0) = |v0| >>> 1
+        // Instr 0: ABS R0 -> R7
+        // Instr 1: SHR R7 -> R7 HALT
+        mem[0] = encode_instr(3'd0, 3'd0, 3'd5, 3'd7, 1'b0);
+        mem[1] = encode_instr(3'd7, 3'd0, 3'd4, 3'd7, 1'b1);
+        for (int i = 2; i < 16; i++) mem[i] = 16'h0000;
+    endfunction
+
+    static function void build_negate_prog(ref bit [15:0] mem [16]);
+        // f(v0) = -v0
+        // Instr 0: NEG R0 -> R7 HALT
+        mem[0] = encode_instr(3'd0, 3'd0, 3'd6, 3'd7, 1'b1);
+        for (int i = 1; i < 16; i++) mem[i] = 16'h0000;
+    endfunction
+
     // ---------------------------------------------------------------
     //  body
     // ---------------------------------------------------------------

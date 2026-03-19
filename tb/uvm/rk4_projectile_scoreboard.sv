@@ -2,9 +2,11 @@
 // the (t,y) pairs output by the DUT for different f-engine programs.
 
 typedef enum int {
-    F_CONST_VEL  = 0,   // f(v0)       = v0
-    F_PROJECTILE = 1,   // f(t, v0)    = v0 - g*t
-    F_EXP_APPROACH = 2  // f(v0, y)    = v0 - y
+    F_CONST_VEL    = 0,   // f(v0)       = v0
+    F_PROJECTILE   = 1,   // f(t, v0)    = v0 - g*t
+    F_EXP_APPROACH = 2,   // f(v0, y)    = v0 - y
+    F_ABS_HALF     = 3,   // f(v0)       = |v0| >>> 1
+    F_NEGATE       = 4    // f(v0)       = -v0
 } f_func_t;
 
 class rk4_projectile_scoreboard extends rk4_base_scoreboard;
@@ -123,6 +125,12 @@ class rk4_projectile_scoreboard extends rk4_base_scoreboard;
             F_CONST_VEL:    return v0;
             F_PROJECTILE:   return v0 - qmul(g_fixed, t_arg);
             F_EXP_APPROACH: return v0 - y_arg;
+            F_ABS_HALF: begin
+                int signed abs_val;
+                abs_val = (v0[31]) ? -v0 : v0;
+                return abs_val >>> 1;
+            end
+            F_NEGATE:       return -v0;
             default:        return v0;
         endcase
     endfunction

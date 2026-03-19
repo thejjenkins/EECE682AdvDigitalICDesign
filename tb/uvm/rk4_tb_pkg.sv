@@ -18,4 +18,10 @@ package rk4_tb_pkg;
     `include "rk4_projectile_sequence.sv"
     `include "rk4_projectile_test.sv"
 
+    // ALU coverage test (SHR, ABS, NEG)
+    `include "rk4_alu_coverage_test.sv"
+
+    // UART error injection test
+    `include "rk4_uart_error_test.sv"
+
 endpackage

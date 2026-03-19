@@ -90,6 +90,8 @@ class rk4_projectile_test extends rk4_base_test;
             F_PROJECTILE:   rk4_projectile_sequence::build_projectile_prog(prog);
             F_CONST_VEL:    rk4_projectile_sequence::build_const_vel_prog(prog);
             F_EXP_APPROACH: rk4_projectile_sequence::build_exp_approach_prog(prog);
+            F_ABS_HALF:     rk4_projectile_sequence::build_abs_half_prog(prog);
+            F_NEGATE:       rk4_projectile_sequence::build_negate_prog(prog);
         endcase
 
         first_v0 = 1;
