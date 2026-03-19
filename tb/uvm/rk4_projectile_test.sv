@@ -41,10 +41,11 @@ class rk4_projectile_test extends rk4_base_test;
         //  Test 1: Projectile motion  f(t, v0) = v0 - g*t
         // -----------------------------------------------------------
         run_f_test(F_PROJECTILE, "Projectile motion", '{
-            32'sd65536,    // v0 = 1.0
-            32'sd131072,   // v0 = 2.0
-            32'sd327680,   // v0 = 5.0
-            32'sd655360    // v0 = 10.0
+            32'sd65536,    // v0 = 1.0   → y_max ≈ 0.05
+            32'sd655360,   // v0 = 10.0  → y_max ≈ 5.1      (bits ~18)
+            32'sd6553600,  // v0 = 100.0 → y_max ≈ 510       (bits ~24)
+            32'sd32768000, // v0 = 500.0 → y_max ≈ 12755     (bits ~29)
+            32'sd52428800  // v0 = 800.0 → y_max ≈ 32653     (bits ~30)
         });
 
         // -----------------------------------------------------------
@@ -53,7 +54,11 @@ class rk4_projectile_test extends rk4_base_test;
         run_f_test(F_CONST_VEL, "Constant velocity", '{
             32'sd65536,    // v0 = 1.0
             32'sd32768,    // v0 = 0.5
-            32'sd196608    // v0 = 3.0
+            32'sh0000AAAA, // v0 ≈ 0.667 — toggles odd fractional bits
+            32'sh00055555, // v0 ≈ 5.333 — toggles even bits
+            32'sh0000FFFF, // v0 ≈ 0.99998 — all fractional bits set
+            32'sh7FFF0000, // v0 = 32767.0 — toggles v0_data bits [16..30]
+            -32'sd65536    // v0 = -1.0 (0xFFFF0000) — toggles v0_data bit [31]
         });
 
         // -----------------------------------------------------------

@@ -8,7 +8,7 @@ interface rk4_if (input logic clk);
 
     initial begin
         uart_rx = 1'b1;
-        rst_n   = 1'b0;
+        rst_n   = 1'b1;
     end
 
 endinterface
