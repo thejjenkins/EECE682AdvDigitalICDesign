@@ -13,4 +13,9 @@ package rk4_tb_pkg;
     `include "rk4_base_sequence.sv"
     `include "rk4_base_test.sv"
 
+    // Projectile motion test components
+    `include "rk4_projectile_scoreboard.sv"
+    `include "rk4_projectile_sequence.sv"
+    `include "rk4_projectile_test.sv"
+
 endpackage

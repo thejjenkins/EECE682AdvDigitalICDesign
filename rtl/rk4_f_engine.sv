@@ -66,10 +66,13 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-// Execution FSM
+// Execution FSM: S_IDLE → S_EXEC → S_WB → (loop or S_DONE → S_IDLE)
+// S_DONE keeps f_active high for one extra cycle so the last instruction's
+// write-back reaches the register file before the MUX switches to FSM control.
 localparam S_IDLE    = 2'd0;
 localparam S_EXEC    = 2'd1;
 localparam S_WB      = 2'd2;
+localparam S_DONE    = 2'd3;
 
 reg [1:0] estate;
 
@@ -97,7 +100,6 @@ always @(posedge clk or negedge rst_n) begin
                 end
             end
 
-            // Drive decode outputs for one cycle so ALU computes
             S_EXEC: begin
                 src_a  <= dec_src_a;
                 src_b  <= dec_src_b;
@@ -106,17 +108,20 @@ always @(posedge clk or negedge rst_n) begin
                 estate <= S_WB;
             end
 
-            // Write-back: assert wr_en so ALU result is stored, then advance PC
             S_WB: begin
                 wr_en <= 1'b1;
                 if (dec_halt || pc == 4'd15) begin
-                    f_active <= 1'b0;
-                    f_done   <= 1'b1;
-                    estate   <= S_IDLE;
+                    estate <= S_DONE;
                 end else begin
                     pc     <= pc + 4'd1;
                     estate <= S_EXEC;
                 end
+            end
+
+            S_DONE: begin
+                f_active <= 1'b0;
+                f_done   <= 1'b1;
+                estate   <= S_IDLE;
             end
 
             default: estate <= S_IDLE;

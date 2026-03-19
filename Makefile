@@ -18,7 +18,7 @@ TOP      = rk4_top
 
 XRUN_ARGS = -sv -timescale 1ns/1ps -access +rwc
 
-.PHONY: compile sim gui lint uvm uvm-gui uvm-clean clean clean-all
+.PHONY: compile sim gui lint uvm uvm-gui uvm-regress uvm-cov uvm-cov-gui uvm-full uvm-full-gui uvm-clean clean clean-all
 
 compile:
 	$(XRUN) -compile $(XRUN_ARGS) -top $(TOP) $(RTL_SRC)
@@ -38,6 +38,15 @@ uvm:
 
 uvm-gui:
 	$(MAKE) -C tb/uvm gui
+
+uvm-regress:
+	$(MAKE) -C tb/uvm regress $(if $(tests),tests=$(tests))
+
+uvm-cov:
+	$(MAKE) -C tb/uvm cov-report
+
+uvm-cov-gui:
+	$(MAKE) -C tb/uvm cov-gui
 
 uvm-full:
 	$(MAKE) -C tb/uvm uvm-full

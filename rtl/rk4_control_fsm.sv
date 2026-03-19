@@ -71,40 +71,46 @@ localparam C_G      = 4'b1_000, C_INV6  = 4'b1_001, C_INV_N = 4'b1_010,
            C_DTHALF = 4'b1_111;
 
 // States
-localparam [4:0]
-    S_IDLE       = 5'd0,
-    S_INIT1      = 5'd1,   // acc = v0 <<< 1
-    S_INIT2      = 5'd2,   // acc = qmul(acc, INV_G)
-    S_INIT3      = 5'd3,   // acc = qmul(acc, INV_N)  → dt
-    S_INIT4      = 5'd4,   // latch dt; clear t=0
-    S_INIT5      = 5'd5,   // clear y=0
-    S_K1_START   = 5'd6,
-    S_K1_WAIT    = 5'd7,
-    S_K2_PREP    = 5'd8,   // acc = t + dt_half
-    S_K2_START   = 5'd9,
-    S_K2_WAIT    = 5'd10,
-    S_K3_PREP    = 5'd11,  // acc = t + dt_half
-    S_K3_START   = 5'd12,
-    S_K3_WAIT    = 5'd13,
-    S_K4_PREP    = 5'd14,  // acc = t + dt
-    S_K4_START   = 5'd15,
-    S_K4_WAIT    = 5'd16,
-    S_UPD1       = 5'd17,  // acc = k2 <<< 1
-    S_UPD2       = 5'd18,  // acc += k1
-    S_UPD3       = 5'd19,  // acc += k3
-    S_UPD4       = 5'd20,  // acc += k3   → k1+2k2+2k3
-    S_UPD5       = 5'd21,  // acc += k4   → k_sum
-    S_UPD6       = 5'd22,  // acc = qmul(acc, dt)
-    S_UPD7       = 5'd23,  // acc = qmul(acc, inv6)
-    S_UPD8       = 5'd24,  // y += acc
-    S_UPD_T      = 5'd25,  // t += dt; step_cnt++
-    S_CHECK      = 5'd26,
-    S_TX_PREP    = 5'd27,
-    S_TX_WAIT    = 5'd28,
-    S_DONE_MARK  = 5'd29,
-    S_DONE_WAIT  = 5'd30;
+localparam [5:0]
+    S_IDLE       = 6'd0,
+    S_INIT1      = 6'd1,   // acc = v0 <<< 1
+    S_INIT2      = 6'd2,   // acc = qmul(acc, INV_G)
+    S_INIT3      = 6'd3,   // acc = qmul(acc, INV_N)  → dt; latch dt
+    S_INIT4      = 6'd4,   // clear t=0
+    S_INIT5      = 6'd5,   // clear y=0
+    S_PRELOAD_G  = 6'd6,   // R5 ← G_FIXED (for f-engine access)
+    S_PRELOAD_T  = 6'd7,   // R7 ← t (K1 time argument)
+    S_K1_START   = 6'd8,
+    S_K1_WAIT    = 6'd9,
+    S_K1_STORE   = 6'd10,  // R2(k1) ← R7(acc)
+    S_K2_PREP    = 6'd11,  // acc = t + dt_half
+    S_K2_START   = 6'd12,
+    S_K2_WAIT    = 6'd13,
+    S_K2_STORE   = 6'd14,  // R3(k2) ← R7(acc)
+    S_K3_PREP    = 6'd15,  // acc = t + dt_half
+    S_K3_START   = 6'd16,
+    S_K3_WAIT    = 6'd17,
+    S_K3_STORE   = 6'd18,  // R4(k3) ← R7(acc)
+    S_K4_PREP    = 6'd19,  // acc = t + dt
+    S_K4_START   = 6'd20,
+    S_K4_WAIT    = 6'd21,
+    S_K4_STORE   = 6'd22,  // R5(k4) ← R7(acc)
+    S_UPD1       = 6'd23,  // acc = k2 <<< 1
+    S_UPD2       = 6'd24,  // acc += k1
+    S_UPD3       = 6'd25,  // acc += k3
+    S_UPD4       = 6'd26,  // acc += k3   → k1+2k2+2k3
+    S_UPD5       = 6'd27,  // acc += k4   → k_sum
+    S_UPD6       = 6'd28,  // acc = qmul(acc, dt)
+    S_UPD7       = 6'd29,  // acc = qmul(acc, inv6)
+    S_UPD8       = 6'd30,  // y += acc
+    S_UPD_T      = 6'd31,  // t += dt; step_cnt++
+    S_CHECK      = 6'd32,
+    S_TX_PREP    = 6'd33,
+    S_TX_WAIT    = 6'd34,
+    S_DONE_MARK  = 6'd35,
+    S_DONE_WAIT  = 6'd36;
 
-reg [4:0] state;
+reg [5:0] state;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -157,19 +163,20 @@ always @(posedge clk or negedge rst_n) begin
             state     <= S_INIT3;
         end
 
-        // acc = qmul(acc, INV_N) → dt
+        // acc = qmul(acc, INV_N) → dt; latch dt (takes effect next cycle
+        // when ALU still outputs the MUL result from this cycle's settings)
         S_INIT3: begin
             mux_a_sel <= `REG(R_ACC);
             mux_b_sel <= C_INV_N;
             alu_op    <= OP_MUL;
             wr_addr   <= R_ACC;
             wr_en     <= 1'b1;
+            latch_dt  <= 1'b1;
             state     <= S_INIT4;
         end
 
-        // Latch dt from ACC; write 0 → t
+        // Write 0 → t
         S_INIT4: begin
-            latch_dt  <= 1'b1;
             mux_a_sel <= C_ZERO;
             alu_op    <= OP_PASS;
             wr_addr   <= R_T;
@@ -184,6 +191,24 @@ always @(posedge clk or negedge rst_n) begin
             alu_op    <= OP_PASS;
             wr_addr   <= R_Y;
             wr_en     <= 1'b1;
+            state     <= S_PRELOAD_G;
+        end
+
+        // Pre-load G_FIXED into R5 so the f-engine program can access it
+        S_PRELOAD_G: begin
+            mux_a_sel <= C_G;
+            alu_op    <= OP_PASS;
+            wr_addr   <= R_K4;
+            wr_en     <= 1'b1;
+            state     <= S_PRELOAD_T;
+        end
+
+        // Copy current t into R7 (time argument for K1)
+        S_PRELOAD_T: begin
+            mux_a_sel <= `REG(R_T);
+            alu_op    <= OP_PASS;
+            wr_addr   <= R_ACC;
+            wr_en     <= 1'b1;
             state     <= S_K1_START;
         end
 
@@ -193,7 +218,16 @@ always @(posedge clk or negedge rst_n) begin
             f_start  <= 1'b1;
             state    <= S_K1_WAIT;
         end
-        S_K1_WAIT: if (f_done) state <= S_K2_PREP;
+        S_K1_WAIT: if (f_done) state <= S_K1_STORE;
+
+        // Store f-engine result (R7) into k1 register (R2)
+        S_K1_STORE: begin
+            mux_a_sel <= `REG(R_ACC);
+            alu_op    <= OP_PASS;
+            wr_addr   <= R_K1;
+            wr_en     <= 1'b1;
+            state     <= S_K2_PREP;
+        end
 
         // --- K2 prep: acc = t + dt_half ---
         S_K2_PREP: begin
@@ -209,7 +243,16 @@ always @(posedge clk or negedge rst_n) begin
             f_start  <= 1'b1;
             state    <= S_K2_WAIT;
         end
-        S_K2_WAIT: if (f_done) state <= S_K3_PREP;
+        S_K2_WAIT: if (f_done) state <= S_K2_STORE;
+
+        // Store f-engine result into k2 register (R3)
+        S_K2_STORE: begin
+            mux_a_sel <= `REG(R_ACC);
+            alu_op    <= OP_PASS;
+            wr_addr   <= R_K2;
+            wr_en     <= 1'b1;
+            state     <= S_K3_PREP;
+        end
 
         // --- K3 prep: acc = t + dt_half ---
         S_K3_PREP: begin
@@ -225,7 +268,16 @@ always @(posedge clk or negedge rst_n) begin
             f_start  <= 1'b1;
             state    <= S_K3_WAIT;
         end
-        S_K3_WAIT: if (f_done) state <= S_K4_PREP;
+        S_K3_WAIT: if (f_done) state <= S_K3_STORE;
+
+        // Store f-engine result into k3 register (R4)
+        S_K3_STORE: begin
+            mux_a_sel <= `REG(R_ACC);
+            alu_op    <= OP_PASS;
+            wr_addr   <= R_K3;
+            wr_en     <= 1'b1;
+            state     <= S_K4_PREP;
+        end
 
         // --- K4 prep: acc = t + dt ---
         S_K4_PREP: begin
@@ -241,7 +293,16 @@ always @(posedge clk or negedge rst_n) begin
             f_start  <= 1'b1;
             state    <= S_K4_WAIT;
         end
-        S_K4_WAIT: if (f_done) state <= S_UPD1;
+        S_K4_WAIT: if (f_done) state <= S_K4_STORE;
+
+        // Store f-engine result into k4 register (R5)
+        S_K4_STORE: begin
+            mux_a_sel <= `REG(R_ACC);
+            alu_op    <= OP_PASS;
+            wr_addr   <= R_K4;
+            wr_en     <= 1'b1;
+            state     <= S_UPD1;
+        end
 
         // --- UPDATE: y += dt/6 * (k1 + 2k2 + 2k3 + k4) ---
         // UPD1: acc = k2 <<< 1
@@ -340,7 +401,7 @@ always @(posedge clk or negedge rst_n) begin
             state        <= S_TX_WAIT;
         end
         S_TX_WAIT: begin
-            if (tx_pair_sent) state <= S_K1_START;
+            if (tx_pair_sent) state <= S_PRELOAD_G;
         end
 
         // --- DONE: send 0xDEADBEEF marker ---
