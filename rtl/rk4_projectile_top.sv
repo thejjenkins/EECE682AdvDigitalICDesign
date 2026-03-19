@@ -6,8 +6,8 @@
 // Target:  TSMC 180 nm       Format: Q16.16 signed fixed-point
 
 module rk4_projectile_top #(
-    parameter integer CLK_FREQ  = 50_000_000,
-    parameter integer BAUD_RATE = 115_200,
+    parameter integer CLK_FREQ  = 1_000_000,
+    parameter integer BAUD_RATE = 9_600,
     parameter integer NUM_DIV   = 100,
     parameter signed [31:0] G_FIXED     = 32'sd642252,
     parameter signed [31:0] INV6_FIXED  = 32'sd10922,

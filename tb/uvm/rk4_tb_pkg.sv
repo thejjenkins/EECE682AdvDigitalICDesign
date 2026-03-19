@@ -24,4 +24,7 @@ package rk4_tb_pkg;
     // UART error injection test
     `include "rk4_uart_error_test.sv"
 
+    // Clock generation coverage test
+    `include "rk4_clk_gen_test.sv"
+
 endpackage

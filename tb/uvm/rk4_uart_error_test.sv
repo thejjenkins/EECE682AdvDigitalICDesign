@@ -29,7 +29,7 @@ class rk4_uart_error_test extends rk4_base_test;
         // ---------------------------------------------------------------
         `uvm_info(get_type_name(), "Injecting false start glitch", UVM_MEDIUM)
         vif.uart_rx = 1'b0;
-        repeat (3) @(posedge vif.clk);
+        repeat (300) @(posedge vif.clk);
         vif.uart_rx = 1'b1;
         repeat (baud_div * 2) @(posedge vif.clk);
 

@@ -70,9 +70,9 @@ class rk4_base_test extends uvm_test;
                 vif.rst_n, vif.uart_rx, $time), UVM_FULL)
         vif.rst_n   = 1'b0;
         vif.uart_rx = 1'b1;
-        repeat (20) @(posedge vif.clk);
+        repeat (2000) @(posedge vif.clk);
         vif.rst_n = 1'b1;
-        repeat (5) @(posedge vif.clk);
+        repeat (500) @(posedge vif.clk);
         `uvm_info(get_type_name(), "Reset released", UVM_MEDIUM)
         `uvm_info(get_type_name(),
             $sformatf("rst_n=%b  uart_rx=%b after reset @ %0t",

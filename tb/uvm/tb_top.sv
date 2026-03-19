@@ -6,14 +6,15 @@ module tb_top;
     import rk4_tb_pkg::*;
 
     // ----------------------------------------------------------------
-    //  Simulation parameters — small values for fast simulation,
-    //  matching the proven direct testbench configuration.
+    //  Simulation parameters
+    //  The clock divider (div_count=49) divides by 100.
+    //  Internal BAUD_DIV = CLK_FREQ / BAUD_RATE = 1_000_000 / 9_600 = 104.
+    //  The driver sees the external clock, so baud_div = 104 * 100 = 10400.
     // ----------------------------------------------------------------
-    localparam integer CLK_FREQ  = 1000;
-    localparam integer BAUD_RATE = 100;
-    localparam integer BAUD_DIV  = CLK_FREQ / BAUD_RATE;  // 10
-    localparam integer NUM_DIV   = 100;
-    localparam real    CLK_PER   = 1000.0 / CLK_FREQ;     // 1.25 ns
+    localparam integer BAUD_DIV_INT = 104;
+    localparam integer CLK_DIV     = 100;
+    localparam integer BAUD_DIV    = BAUD_DIV_INT * CLK_DIV;
+    localparam real    CLK_PER     = 0.01;   // 10 ps external clock
 
     // ----------------------------------------------------------------
     //  Clock generation
@@ -30,17 +31,16 @@ module tb_top;
     rk4_if rk4_vif (.clk(clk));
 
     // ----------------------------------------------------------------
-    //  DUT — rk4_projectile_top
+    //  DUT — rk4_top (full chip with clock generation)
     // ----------------------------------------------------------------
-    rk4_projectile_top #(
-        .CLK_FREQ  (CLK_FREQ),
-        .BAUD_RATE (BAUD_RATE),
-        .NUM_DIV   (NUM_DIV)
-    ) dut (
-        .clk     (clk),
-        .rst_n   (rk4_vif.rst_n),
-        .uart_rx (rk4_vif.uart_rx),
-        .uart_tx (rk4_vif.uart_tx)
+    rk4_top dut (
+        .clk_100MHz (clk),
+        .en         (rk4_vif.en),
+        .rst        (rk4_vif.rst_n),
+        .sel        (rk4_vif.sel),
+        .uart_rx    (rk4_vif.uart_rx),
+        .uart_tx    (rk4_vif.uart_tx),
+        .clk_1Hz    ()
     );
 
     // ----------------------------------------------------------------
@@ -56,8 +56,8 @@ module tb_top;
     //  Hard timeout safety net
     // ----------------------------------------------------------------
     initial begin
-        #10ms;
-        `uvm_fatal("TB_TOP", "Global simulation timeout (10 ms)")
+        #50ms;
+        `uvm_fatal("TB_TOP", "Global simulation timeout (50 ms)")
     end
 
     // ----------------------------------------------------------------
