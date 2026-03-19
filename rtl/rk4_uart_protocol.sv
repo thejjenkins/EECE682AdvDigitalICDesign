@@ -37,14 +37,14 @@ module rk4_uart_protocol (
 localparam [7:0] CMD_LOAD_PROG = 8'h01;
 localparam [7:0] CMD_RUN       = 8'h02;
 
-localparam [2:0]
-    ST_CMD      = 3'd0,
-    ST_PROG_LO  = 3'd1,
-    ST_PROG_HI  = 3'd2,
-    ST_V0_BYTE  = 3'd3;
+localparam [1:0]
+    ST_CMD      = 2'd0,
+    ST_PROG_LO  = 2'd1,
+    ST_PROG_HI  = 2'd2,
+    ST_V0_BYTE  = 2'd3;
 
-reg [2:0]  pstate;
-reg [4:0]  byte_cnt;    // counts bytes within a command payload
+reg [1:0]  pstate;
+reg [2:0]  byte_cnt;    // counts bytes within a command payload
 reg [3:0]  instr_idx;   // which instruction we're loading
 reg [7:0]  lo_byte;     // temp for little-endian instruction assembly
 reg [31:0] v0_shift;
@@ -52,7 +52,7 @@ reg [31:0] v0_shift;
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         pstate    <= ST_CMD;
-        byte_cnt  <= 5'd0;
+        byte_cnt  <= 3'd0;
         instr_idx <= 4'd0;
         lo_byte   <= 8'd0;
         v0_shift  <= 32'd0;
@@ -78,7 +78,7 @@ always @(posedge clk or negedge rst_n) begin
                     end
                     CMD_RUN: begin
                         pstate   <= ST_V0_BYTE;
-                        byte_cnt <= 5'd0;
+                        byte_cnt <= 3'd0;
                         v0_shift <= 32'd0;
                     end
                     default: ; // ignore unknown commands
@@ -120,7 +120,7 @@ always @(posedge clk or negedge rst_n) begin
                         pstate <= ST_CMD;
                     end
                 endcase
-                byte_cnt <= byte_cnt + 5'd1;
+                byte_cnt <= byte_cnt + 3'd1;
             end
 
             default: pstate <= ST_CMD;

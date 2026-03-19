@@ -9,9 +9,9 @@ module tb_top;
     //  Simulation parameters — small values for fast simulation,
     //  matching the proven direct testbench configuration.
     // ----------------------------------------------------------------
-    localparam integer CLK_FREQ  = 800;
+    localparam integer CLK_FREQ  = 1000;
     localparam integer BAUD_RATE = 100;
-    localparam integer BAUD_DIV  = CLK_FREQ / BAUD_RATE;  // 8
+    localparam integer BAUD_DIV  = CLK_FREQ / BAUD_RATE;  // 10
     localparam integer NUM_DIV   = 100;
     localparam real    CLK_PER   = 1000.0 / CLK_FREQ;     // 1.25 ns
 
