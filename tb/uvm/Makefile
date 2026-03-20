@@ -62,10 +62,14 @@ regress:
 	for t in $(RUN_TESTS); do \
 		echo ""; \
 		echo "======== Running $$t ========"; \
-		if $(XRUN) $(BASE_ARGS) +UVM_TESTNAME=$$t \
+		$(XRUN) $(BASE_ARGS) +UVM_TESTNAME=$$t \
 			-covworkdir $(COV_WORKDIR) \
 			-covtest $$t \
-			-l $(REGRESS_DIR)/$$t.log; then \
+			-l $(REGRESS_DIR)/$$t.log; \
+		xrun_rc=$$?; \
+		if [ $$xrun_rc -eq 0 ] && \
+		   grep -q 'UVM_ERROR :    0' $(REGRESS_DIR)/$$t.log && \
+		   grep -q 'UVM_FATAL :    0' $(REGRESS_DIR)/$$t.log; then \
 			echo "-------- $$t PASSED --------"; \
 			pass=$$((pass + 1)); \
 		else \

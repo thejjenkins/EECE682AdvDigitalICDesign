@@ -79,4 +79,12 @@ class rk4_base_test extends uvm_test;
                 vif.rst_n, vif.uart_rx, $time), UVM_FULL)
     endtask
 
+    virtual function void report_phase(uvm_phase phase);
+        uvm_report_server srv = uvm_report_server::get_server();
+        if (srv.get_severity_count(UVM_ERROR) > 0)
+            `uvm_fatal(get_type_name(), $sformatf(
+                "Test finished with %0d UVM_ERROR(s)",
+                srv.get_severity_count(UVM_ERROR)))
+    endfunction
+
 endclass

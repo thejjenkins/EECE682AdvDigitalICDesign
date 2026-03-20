@@ -55,8 +55,8 @@ class rk4_projectile_sequence extends uvm_sequence #(rk4_seq_item);
     static function void build_abs_half_prog(ref bit [15:0] mem [16]);
         // f(v0) = |v0| >>> 1   — 16-instruction, no halt (pc==15 terminates)
         // Exercises ABS, SHR, and the pc==15 expression coverage path.
-        mem[0]  = encode_instr(3'd0, 3'd0, 3'd5, 3'd1, 1'b0);  // ABS R0 -> R1
-        mem[1]  = encode_instr(3'd1, 3'd0, 3'd4, 3'd2, 1'b0);  // SHR R1 -> R2
+        mem[0]  = encode_instr(3'd0, 3'd0, 3'd5, 3'd3, 1'b0);  // ABS R0 -> R3
+        mem[1]  = encode_instr(3'd3, 3'd0, 3'd4, 3'd2, 1'b0);  // SHR R3 -> R2
         for (int i = 2; i < 15; i++)
             mem[i] = encode_instr(3'd2, 3'd0, 3'd7, 3'd4, 1'b0);  // PASS R2 -> R4 (padding)
         mem[15] = encode_instr(3'd2, 3'd0, 3'd7, 3'd7, 1'b0);  // PASS R2 -> R7 (no halt)
