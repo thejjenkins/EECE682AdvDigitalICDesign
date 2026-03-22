@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1050" width="1500" height="1050">
+  <defs>
+    <style>
+      text { font-family: 'Courier New', 'Menlo', monospace; }
+    </style>
+    <marker id="a-cyan" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#06b6d4" stroke-width="1.2"/>
+    </marker>
+    <marker id="a-blue" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#3b82f6" stroke-width="1.2"/>
+    </marker>
+    <marker id="a-amber" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#f59e0b" stroke-width="1.2"/>
+    </marker>
+    <marker id="a-green" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#10b981" stroke-width="1.2"/>
+    </marker>
+    <marker id="a-rose" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#f43f5e" stroke-width="1.2"/>
+    </marker>
+    <marker id="a-orange" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#f97316" stroke-width="1.2"/>
+    </marker>
+    <marker id="a-slate" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
+    </marker>
+    <marker id="a-violet" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#8b5cf6" stroke-width="1.2"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1500" height="1050" fill="#0a0e17"/>
+
+  <!-- Title -->
+  <text x="750" y="36" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="bold">rk4_projectile_top -- Internal Architecture</text>
+  <text x="750" y="56" text-anchor="middle" fill="#475569" font-size="12">Q16.16 Fixed-Point | Shared ALU Datapath | Micro-Coded f-Engine | UART I/O</text>
+
+  <!-- Module boundary -->
+  <rect x="25" y="70" width="1450" height="950" rx="12" fill="none" stroke="#1e293b" stroke-width="2"/>
+  <rect x="35" y="60" width="200" height="20" fill="#0a0e17"/>
+  <text x="45" y="74" fill="#475569" font-size="13" font-weight="bold">rk4_projectile_top</text>
+
+  <!-- ================================================================ -->
+  <!--  BLOCK: uart_rx                                                  -->
+  <!-- ================================================================ -->
+  <rect x="60" y="120" width="170" height="70" rx="8" fill="#042f2e" stroke="#06b6d4" stroke-width="1.5"/>
+  <rect x="60" y="120" width="170" height="25" rx="8" fill="#0e4a47"/>
+  <rect x="60" y="137" width="170" height="8" fill="#042f2e"/>
+  <text x="145" y="138" text-anchor="middle" fill="#67e8f9" font-size="13" font-weight="bold">uart_rx</text>
+  <text x="70" y="162" fill="#64748b" font-size="10">8N1 deserializer</text>
+  <text x="70" y="176" fill="#94a3b8" font-size="9">u_rx</text>
+
+  <!-- ================================================================ -->
+  <!--  BLOCK: rk4_uart_protocol                                        -->
+  <!-- ================================================================ -->
+  <rect x="310" y="100" width="210" height="110" rx="8" fill="#1c0a04" stroke="#f97316" stroke-width="1.5"/>
+  <rect x="310" y="100" width="210" height="25" rx="8" fill="#431407"/>
+  <rect x="310" y="117" width="210" height="8" fill="#1c0a04"/>
+  <text x="415" y="118" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="bold">rk4_uart_protocol</text>
+  <text x="320" y="142" fill="#64748b" font-size="10">CMD parser FSM</text>
+  <text x="320" y="158" fill="#94a3b8" font-size="9">0x01: Load Program (32B)</text>
+  <text x="320" y="172" fill="#94a3b8" font-size="9">0x02: Run v0 (4B)</text>
+  <text x="320" y="196" fill="#94a3b8" font-size="9">u_proto</text>
+
+  <!-- ================================================================ -->
+  <!--  BLOCK: rk4_f_engine                                             -->
+  <!-- ================================================================ -->
+  <rect x="640" y="100" width="200" height="110" rx="8" fill="#1c0a12" stroke="#f43f5e" stroke-width="1.5"/>
+  <rect x="640" y="100" width="200" height="25" rx="8" fill="#4c0519"/>
+  <rect x="640" y="117" width="200" height="8" fill="#1c0a12"/>
+  <text x="740" y="118" text-anchor="middle" fill="#fda4af" font-size="13" font-weight="bold">rk4_f_engine</text>
+  <text x="650" y="142" fill="#64748b" font-size="10">Micro-coded f(y,t)</text>
+  <text x="650" y="158" fill="#94a3b8" font-size="9">16x16b instruction mem</text>
+  <text x="650" y="172" fill="#94a3b8" font-size="9">4-state exec FSM</text>
+  <text x="650" y="196" fill="#94a3b8" font-size="9">u_fengine</text>
+
+  <!-- ================================================================ -->
+  <!--  BLOCK: rk4_control_fsm                                          -->
+  <!-- ================================================================ -->
+  <rect x="640" y="260" width="200" height="125" rx="8" fill="#1c1004" stroke="#f59e0b" stroke-width="1.5"/>
+  <rect x="640" y="260" width="200" height="25" rx="8" fill="#451a03"/>
+  <rect x="640" y="277" width="200" height="8" fill="#1c1004"/>
+  <text x="740" y="278" text-anchor="middle" fill="#fcd34d" font-size="12" font-weight="bold">rk4_control_fsm</text>
+  <text x="650" y="302" fill="#64748b" font-size="10">37-state sequencer</text>
+  <text x="650" y="318" fill="#94a3b8" font-size="9">INIT -&gt; K1..K4 -&gt;</text>
+  <text x="650" y="334" fill="#94a3b8" font-size="9">UPDATE -&gt; TX -&gt; LOOP</text>
+  <text x="650" y="350" fill="#94a3b8" font-size="9">NUM_DIV=100 steps</text>
+  <text x="650" y="374" fill="#94a3b8" font-size="9">u_fsm</text>
+
+  <!-- ================================================================ -->
+  <!--  GLUE: Control MUX (f_active arbiter)                            -->
+  <!-- ================================================================ -->
+  <rect x="950" y="260" width="180" height="70" rx="8" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="1040" y="282" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">Control MUX</text>
+  <text x="1040" y="298" text-anchor="middle" fill="#64748b" font-size="9">f_active ? fe_* : fsm_*</text>
+  <text x="1040" y="314" text-anchor="middle" fill="#64748b" font-size="9">-&gt; alu_op, wr_addr, wr_en</text>
+
+  <!-- ================================================================ -->
+  <!--  GLUE: Source MUXes                                              -->
+  <!-- ================================================================ -->
+  <rect x="950" y="400" width="180" height="70" rx="8" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="1040" y="422" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">Source MUXes</text>
+  <text x="1040" y="438" text-anchor="middle" fill="#64748b" font-size="9">sel[3] ? const : reg_rd</text>
+  <text x="1040" y="454" text-anchor="middle" fill="#64748b" font-size="9">-&gt; alu_a, alu_b</text>
+
+  <!-- ================================================================ -->
+  <!--  BLOCK: rk4_regfile                                              -->
+  <!-- ================================================================ -->
+  <rect x="950" y="530" width="180" height="140" rx="8" fill="#0a1628" stroke="#3b82f6" stroke-width="1.5"/>
+  <rect x="950" y="530" width="180" height="25" rx="8" fill="#172554"/>
+  <rect x="950" y="547" width="180" height="8" fill="#0a1628"/>
+  <text x="1040" y="548" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="bold">rk4_regfile</text>
+  <text x="960" y="572" fill="#64748b" font-size="10">8x32b Q16.16</text>
+  <text x="960" y="588" fill="#94a3b8" font-size="9">R0=v0  R1=t</text>
+  <text x="960" y="604" fill="#94a3b8" font-size="9">R2-5=k1..k4</text>
+  <text x="960" y="620" fill="#94a3b8" font-size="9">R6=y  R7=acc</text>
+  <text x="960" y="640" fill="#64748b" font-size="9">2 read / 1 write</text>
+  <text x="960" y="660" fill="#94a3b8" font-size="9">u_regfile</text>
+
+  <!-- ================================================================ -->
+  <!--  BLOCK: rk4_alu                                                  -->
+  <!-- ================================================================ -->
+  <rect x="1250" y="380" width="180" height="110" rx="8" fill="#021c14" stroke="#10b981" stroke-width="1.5"/>
+  <rect x="1250" y="380" width="180" height="25" rx="8" fill="#064e3b"/>
+  <rect x="1250" y="397" width="180" height="8" fill="#021c14"/>
+  <text x="1340" y="398" text-anchor="middle" fill="#6ee7b7" font-size="13" font-weight="bold">rk4_alu</text>
+  <text x="1260" y="422" fill="#64748b" font-size="10">Q16.16 combinational</text>
+  <text x="1260" y="438" fill="#94a3b8" font-size="9">ADD SUB MUL</text>
+  <text x="1260" y="454" fill="#94a3b8" font-size="9">SHL SHR ABS NEG PASS</text>
+  <text x="1260" y="480" fill="#94a3b8" font-size="9">u_alu</text>
+
+  <!-- ================================================================ -->
+  <!--  GLUE: dt / dt_half Latch                                        -->
+  <!-- ================================================================ -->
+  <rect x="1250" y="545" width="180" height="65" rx="8" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="1340" y="567" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">dt / dt_half Latch</text>
+  <text x="1340" y="583" text-anchor="middle" fill="#64748b" font-size="9">dt = alu_result</text>
+  <text x="1340" y="597" text-anchor="middle" fill="#64748b" font-size="9">dt_half = dt &gt;&gt;&gt; 1</text>
+
+  <!-- ================================================================ -->
+  <!--  GLUE: Constant Table                                            -->
+  <!-- ================================================================ -->
+  <rect x="1250" y="660" width="180" height="70" rx="8" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="1340" y="682" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">Constant Table</text>
+  <text x="1340" y="698" text-anchor="middle" fill="#64748b" font-size="9">G, 1/6, 1/N, 1/g</text>
+  <text x="1340" y="714" text-anchor="middle" fill="#64748b" font-size="9">0, dt_reg, dt_half</text>
+
+  <!-- ================================================================ -->
+  <!--  GLUE: TX Shift-Out Logic                                        -->
+  <!-- ================================================================ -->
+  <rect x="310" y="800" width="210" height="70" rx="8" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="415" y="822" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">TX Shift-Out Logic</text>
+  <text x="415" y="838" text-anchor="middle" fill="#64748b" font-size="9">8-byte {y,t} or 4-byte 0xDEADBEEF</text>
+  <text x="415" y="854" text-anchor="middle" fill="#64748b" font-size="9">shift reg -&gt; tx_byte</text>
+
+  <!-- ================================================================ -->
+  <!--  BLOCK: uart_tx                                                  -->
+  <!-- ================================================================ -->
+  <rect x="60" y="800" width="170" height="70" rx="8" fill="#042f2e" stroke="#06b6d4" stroke-width="1.5"/>
+  <rect x="60" y="800" width="170" height="25" rx="8" fill="#0e4a47"/>
+  <rect x="60" y="817" width="170" height="8" fill="#042f2e"/>
+  <text x="145" y="818" text-anchor="middle" fill="#67e8f9" font-size="13" font-weight="bold">uart_tx</text>
+  <text x="70" y="842" fill="#64748b" font-size="10">8N1 serializer</text>
+  <text x="70" y="856" fill="#94a3b8" font-size="9">u_tx</text>
+
+  <!-- ================================================================ -->
+  <!--  EXTERNAL I/O PINS                                               -->
+  <!-- ================================================================ -->
+  <!-- uart_rx input -->
+  <rect x="5" y="142" width="42" height="20" rx="5" fill="#052e16" stroke="#10b981" stroke-width="1.2"/>
+  <text x="26" y="156" text-anchor="middle" fill="#6ee7b7" font-size="9" font-weight="bold">rx</text>
+
+  <!-- uart_tx output -->
+  <rect x="5" y="825" width="42" height="20" rx="5" fill="#1c0a1e" stroke="#f43f5e" stroke-width="1.2"/>
+  <text x="26" y="839" text-anchor="middle" fill="#fda4af" font-size="9" font-weight="bold">tx</text>
+
+  <!-- clk + rst_n -->
+  <rect x="5" y="960" width="42" height="20" rx="5" fill="#052e16" stroke="#10b981" stroke-width="1.2"/>
+  <text x="26" y="974" text-anchor="middle" fill="#6ee7b7" font-size="8" font-weight="bold">clk</text>
+  <rect x="55" y="960" width="50" height="20" rx="5" fill="#052e16" stroke="#10b981" stroke-width="1.2"/>
+  <text x="80" y="974" text-anchor="middle" fill="#6ee7b7" font-size="8" font-weight="bold">rst_n</text>
+  <text x="120" y="974" fill="#475569" font-size="9">-&gt; all sequential blocks</text>
+
+  <!-- ================================================================ -->
+  <!--  CONNECTIONS                                                     -->
+  <!-- ================================================================ -->
+
+  <!-- === UART RX PATH === -->
+  <!-- rx pin -> uart_rx -->
+  <path d="M 47 152 L 60 152" stroke="#06b6d4" stroke-width="1.8" fill="none" marker-end="url(#a-cyan)"/>
+
+  <!-- uart_rx -> protocol (rx_data, rx_valid) -->
+  <path d="M 230 150 L 310 150" stroke="#06b6d4" stroke-width="1.8" fill="none" marker-end="url(#a-cyan)"/>
+  <text x="237" y="143" fill="#06b6d4" font-size="9" opacity="0.9">rx_data[7:0]</text>
+  <text x="237" y="165" fill="#06b6d4" font-size="8" opacity="0.6">rx_valid</text>
+
+  <!-- === PROTOCOL DISPATCH === -->
+  <!-- protocol -> f_engine (prog_wr/addr/data) -->
+  <path d="M 520 140 L 640 140" stroke="#f97316" stroke-width="1.8" fill="none" marker-end="url(#a-orange)"/>
+  <text x="540" y="133" fill="#f97316" font-size="9" opacity="0.9">prog_wr, prog_addr[3:0]</text>
+  <text x="540" y="153" fill="#f97316" font-size="8" opacity="0.6">prog_data[15:0]</text>
+
+  <!-- protocol -> regfile (v0_load, v0_data) -->
+  <path d="M 520 180 L 570 180 L 570 590 L 950 590" stroke="#f97316" stroke-width="1.5" fill="none" marker-end="url(#a-orange)"/>
+  <text x="575" y="480" fill="#f97316" font-size="9" opacity="0.8">v0_load</text>
+  <text x="575" y="495" fill="#f97316" font-size="8" opacity="0.6">v0_data[31:0]</text>
+
+  <!-- protocol -> fsm (run_start) -->
+  <path d="M 520 160 L 590 160 L 590 300 L 640 300" stroke="#f59e0b" stroke-width="1.8" fill="none" marker-end="url(#a-amber)"/>
+  <text x="595" y="240" fill="#f59e0b" font-size="9" opacity="0.9">run_start</text>
+
+  <!-- fsm busy -> protocol -->
+  <path d="M 640 370 L 610 370 L 610 195 L 520 195" stroke="#f59e0b" stroke-width="1.2" fill="none" marker-end="url(#a-amber)" stroke-dasharray="4,3"/>
+  <text x="615" y="232" fill="#f59e0b" font-size="8" opacity="0.5">busy (fsm_busy)</text>
+
+  <!-- === FSM <-> F_ENGINE HANDSHAKE === -->
+  <!-- fsm -> f_engine: f_start -->
+  <path d="M 700 260 L 700 210" stroke="#f43f5e" stroke-width="1.8" fill="none" marker-end="url(#a-rose)"/>
+  <text x="705" y="240" fill="#f43f5e" font-size="9" opacity="0.9">f_start</text>
+
+  <!-- f_engine -> fsm: f_done, f_active -->
+  <path d="M 730 210 L 730 260" stroke="#f43f5e" stroke-width="1.2" fill="none" marker-end="url(#a-rose)" stroke-dasharray="4,3"/>
+  <text x="735" y="233" fill="#f43f5e" font-size="8" opacity="0.6">f_done</text>
+  <text x="735" y="246" fill="#f43f5e" font-size="8" opacity="0.6">f_active</text>
+
+  <!-- === FSM -> CONTROL MUX === -->
+  <path d="M 840 310 L 950 310" stroke="#f59e0b" stroke-width="1.8" fill="none" marker-end="url(#a-amber)"/>
+  <text x="855" y="303" fill="#f59e0b" font-size="8" opacity="0.8">mux_a/b_sel[3:0]</text>
+  <text x="855" y="323" fill="#f59e0b" font-size="8" opacity="0.6">alu_op, wr_addr, wr_en</text>
+
+  <!-- === F_ENGINE -> CONTROL MUX === -->
+  <path d="M 840 170 L 910 170 L 910 280 L 950 280" stroke="#f43f5e" stroke-width="1.8" fill="none" marker-end="url(#a-rose)"/>
+  <text x="915" y="220" fill="#f43f5e" font-size="8" opacity="0.8">src_a/b, alu_op</text>
+  <text x="915" y="235" fill="#f43f5e" font-size="8" opacity="0.6">dest, wr_en</text>
+
+  <!-- === CONTROL MUX -> SOURCE MUXES (sel_a, sel_b) === -->
+  <path d="M 1040 330 L 1040 400" stroke="#94a3b8" stroke-width="1.8" fill="none" marker-end="url(#a-slate)"/>
+  <text x="1045" y="370" fill="#94a3b8" font-size="8" opacity="0.7">sel_a[3:0]</text>
+  <text x="1045" y="383" fill="#94a3b8" font-size="8" opacity="0.7">sel_b[3:0]</text>
+
+  <!-- === CONTROL MUX -> ALU (alu_op) === -->
+  <path d="M 1130 290 L 1340 290 L 1340 380" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#a-slate)" stroke-dasharray="4,3"/>
+  <text x="1210" y="283" fill="#94a3b8" font-size="8" opacity="0.7">alu_op[2:0]</text>
+
+  <!-- === CONTROL MUX -> REGFILE (wr_addr, wr_en) === -->
+  <path d="M 1130 305 L 1190 305 L 1190 555 L 1130 555" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#a-slate)" stroke-dasharray="4,3"/>
+  <text x="1195" y="430" fill="#94a3b8" font-size="8" opacity="0.5">wr_addr[2:0]</text>
+  <text x="1195" y="445" fill="#94a3b8" font-size="8" opacity="0.5">wr_en</text>
+
+  <!-- === REGFILE -> SOURCE MUXES (read ports) === -->
+  <path d="M 1000 530 L 1000 470" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#a-blue)"/>
+  <text x="1005" y="505" fill="#3b82f6" font-size="8" opacity="0.8">rd_data_a[31:0]</text>
+  <text x="1005" y="518" fill="#3b82f6" font-size="8" opacity="0.8">rd_data_b[31:0]</text>
+
+  <!-- === SOURCE MUXES -> REGFILE (rd_addr) === -->
+  <path d="M 970 470 L 970 530" stroke="#94a3b8" stroke-width="1.2" fill="none" marker-end="url(#a-slate)" stroke-dasharray="3,3"/>
+  <text x="895" y="505" fill="#94a3b8" font-size="8" opacity="0.5">rd_addr_a/b</text>
+
+  <!-- === CONSTANT TABLE -> SOURCE MUXES === -->
+  <path d="M 1300 660 L 1300 640 L 1100 640 L 1100 470" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#a-slate)"/>
+  <text x="1135" y="575" fill="#94a3b8" font-size="8" opacity="0.6">const_a/b</text>
+
+  <!-- === SOURCE MUXES -> ALU (op_a, op_b) === -->
+  <path d="M 1130 435 L 1250 435" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#a-green)"/>
+  <text x="1155" y="428" fill="#10b981" font-size="9" opacity="0.9">op_a[31:0]</text>
+  <text x="1155" y="448" fill="#10b981" font-size="9" opacity="0.9">op_b[31:0]</text>
+
+  <!-- === ALU RESULT -> REGFILE WRITE-BACK (big loop) === -->
+  <path d="M 1340 490 L 1340 520 L 1220 520 L 1220 570 L 1130 570" stroke="#10b981" stroke-width="2.5" fill="none" marker-end="url(#a-green)"/>
+  <text x="1225" y="515" fill="#10b981" font-size="9" opacity="0.9">alu_result</text>
+  <text x="1225" y="535" fill="#10b981" font-size="8" opacity="0.6">= rf_wr_data</text>
+
+  <!-- === ALU RESULT -> dt LATCH === -->
+  <path d="M 1370 490 L 1370 545" stroke="#10b981" stroke-width="1.5" fill="none" marker-end="url(#a-green)"/>
+  <text x="1375" y="520" fill="#10b981" font-size="8" opacity="0.6">alu_result</text>
+
+  <!-- === FSM latch_dt -> dt LATCH === -->
+  <path d="M 840 350 L 870 350 L 870 570 L 1250 570" stroke="#f59e0b" stroke-width="1.2" fill="none" marker-end="url(#a-amber)" stroke-dasharray="4,3"/>
+  <text x="880" y="570" fill="#f59e0b" font-size="8" opacity="0.5">latch_dt</text>
+
+  <!-- === dt LATCH -> CONSTANT TABLE === -->
+  <path d="M 1340 610 L 1340 660" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#a-slate)"/>
+  <text x="1345" y="640" fill="#94a3b8" font-size="8" opacity="0.6">dt, dt/2</text>
+
+  <!-- === REGFILE y_out[31] -> FSM (y_negative) === -->
+  <path d="M 950 640 L 860 640 L 860 375 L 840 375" stroke="#3b82f6" stroke-width="1.2" fill="none" marker-end="url(#a-blue)" stroke-dasharray="3,3"/>
+  <text x="862" y="635" fill="#3b82f6" font-size="8" opacity="0.5">y_out[31] (y_negative)</text>
+
+  <!-- === FSM -> TX SHIFT-OUT (tx_send_pair, tx_send_done) === -->
+  <path d="M 640 360 L 540 360 L 540 820 L 520 820" stroke="#f59e0b" stroke-width="1.8" fill="none" marker-end="url(#a-amber)"/>
+  <text x="545" y="700" fill="#f59e0b" font-size="9" opacity="0.8">tx_send_pair</text>
+  <text x="545" y="715" fill="#f59e0b" font-size="8" opacity="0.6">tx_send_done_marker</text>
+
+  <!-- === TX SHIFT-OUT -> FSM (tx_pair_sent) === -->
+  <path d="M 520 845 L 558 845 L 558 380 L 640 380" stroke="#f59e0b" stroke-width="1.2" fill="none" marker-end="url(#a-amber)" stroke-dasharray="3,3"/>
+  <text x="562" y="735" fill="#f59e0b" font-size="8" opacity="0.5">tx_pair_sent</text>
+
+  <!-- === REGFILE t_out/y_out -> TX SHIFT-OUT === -->
+  <path d="M 950 650 L 930 650 L 930 835 L 520 835" stroke="#3b82f6" stroke-width="1.5" fill="none" marker-end="url(#a-blue)"/>
+  <text x="700" y="850" fill="#3b82f6" font-size="9" opacity="0.8">t_out[31:0], y_out[31:0]</text>
+
+  <!-- === TX SHIFT-OUT -> uart_tx === -->
+  <path d="M 310 835 L 230 835" stroke="#06b6d4" stroke-width="1.8" fill="none" marker-end="url(#a-cyan)"/>
+  <text x="237" y="828" fill="#06b6d4" font-size="9" opacity="0.9">tx_byte[7:0]</text>
+  <text x="237" y="855" fill="#06b6d4" font-size="8" opacity="0.6">tx_valid</text>
+
+  <!-- === uart_tx -> tx_ready -> TX SHIFT-OUT === -->
+  <path d="M 230 855 L 270 855 L 270 860 L 310 860" stroke="#06b6d4" stroke-width="1.2" fill="none" marker-end="url(#a-cyan)" stroke-dasharray="3,3"/>
+  <text x="248" y="872" fill="#06b6d4" font-size="8" opacity="0.5">tx_ready</text>
+
+  <!-- === uart_tx -> tx pin === -->
+  <path d="M 60 835 L 47 835" stroke="#06b6d4" stroke-width="1.8" fill="none" marker-end="url(#a-cyan)"/>
+
+  <!-- ================================================================ -->
+  <!--  LEGEND                                                          -->
+  <!-- ================================================================ -->
+  <g transform="translate(720, 975)">
+    <rect x="0" y="0" width="10" height="10" rx="2" fill="#0e4a47" stroke="#06b6d4" stroke-width="1"/>
+    <text x="15" y="9" fill="#64748b" font-size="9">UART</text>
+
+    <rect x="65" y="0" width="10" height="10" rx="2" fill="#431407" stroke="#f97316" stroke-width="1"/>
+    <text x="80" y="9" fill="#64748b" font-size="9">Protocol</text>
+
+    <rect x="145" y="0" width="10" height="10" rx="2" fill="#4c0519" stroke="#f43f5e" stroke-width="1"/>
+    <text x="160" y="9" fill="#64748b" font-size="9">f-Engine</text>
+
+    <rect x="230" y="0" width="10" height="10" rx="2" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="245" y="9" fill="#64748b" font-size="9">Control</text>
+
+    <rect x="305" y="0" width="10" height="10" rx="2" fill="#172554" stroke="#3b82f6" stroke-width="1"/>
+    <text x="320" y="9" fill="#64748b" font-size="9">Datapath</text>
+
+    <rect x="385" y="0" width="10" height="10" rx="2" fill="#064e3b" stroke="#10b981" stroke-width="1"/>
+    <text x="400" y="9" fill="#64748b" font-size="9">Compute</text>
+
+    <line x1="465" y1="5" x2="495" y2="5" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="500" y="9" fill="#64748b" font-size="9">Glue logic</text>
+  </g>
+
+</svg>
