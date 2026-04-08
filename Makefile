@@ -88,10 +88,10 @@ uvm-gate-clean:
 
 # --- Synthesis (Genus) ---
 synth:
-	cd $(SYNTH_DIR) && genus -f rk4_script.tcl
+	cd $(SYNTH_DIR) && genus -f rk4_script.tcl -log debug.log
 
 synth-dft:
-	cd $(SYNTH_DIR) && genus -f rk4_dft_script.tcl
+	cd $(SYNTH_DIR) && genus -f rk4_dft_script.tcl -log dft_debug.log
 
 # --- ATPG (Modus) ---
 atpg:

@@ -10,4 +10,5 @@
 ../../rtl/rk4_ring_osc.sv
 ../../rtl/rk4_clock_divider.sv
 ../../rtl/rk4_clk_gen.sv
+../../rtl/jtag_tap.sv
 ../../rtl/rk4_top.sv

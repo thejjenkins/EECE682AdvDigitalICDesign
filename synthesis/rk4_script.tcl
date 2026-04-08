@@ -11,7 +11,7 @@ set_db lef_library /projects/howard/process/howard/tsmc/tsmc18/oa/v1.3a/IP_HOME/
 set_db library {tcb018gbwp7twcl.lib}
 set_db init_hdl_search_path ../rtl/
 
-read_hdl -sv {rk4_top.sv rk4_alu.sv rk4_clk_gen.sv rk4_clock_divider.sv rk4_control_fsm.sv rk4_f_engine.sv rk4_projectile_top.sv rk4_regfile.sv rk4_ring_osc.sv rk4_uart_protocol.sv uart_rx.sv uart_tx.sv}
+read_hdl -sv {rk4_top.sv rk4_alu.sv rk4_clk_gen.sv rk4_clock_divider.sv rk4_control_fsm.sv rk4_f_engine.sv rk4_projectile_top.sv rk4_regfile.sv rk4_uart_protocol.sv uart_rx.sv uart_tx.sv jtag_tap.sv}
 elaborate
 
 read_sdc constraints.sdc
@@ -22,8 +22,6 @@ set_db syn_opt_effort medium
 
 syn_generic
 syn_map
-# Add this after syn_map, before syn_opt
-set_db [get_cells -hierarchical clock_unit/Oscillator*] .dont_touch true
 syn_opt
 
 
@@ -38,5 +36,7 @@ report_qor    > reports/rk4_top_qor.rpt
 write_hdl > outputs/rk4_top_netlist.v
 write_sdc > outputs/rk4_top_sdc.sdc
 write_sdf -timescale ns -nonegchecks -recrem split -edges check_edge  -setuphold split > outputs/delays.sdf
+
+write_do_lec -revised_design outputs/rk4_top_netlist.v -logfile outputs/rk4_top_rtl2gate.lec.log > outputs/rk4_top_rtl2gate.lec.do
 
 write_db -common rk4_to

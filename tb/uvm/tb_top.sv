@@ -40,7 +40,14 @@ module tb_top;
         .sel        (rk4_vif.sel),
         .uart_rx    (rk4_vif.uart_rx),
         .uart_tx    (rk4_vif.uart_tx),
-        .clk_1Hz    ()
+        .clk_1Hz    (),
+        // JTAG — tie off for functional simulation (TAP idles in Run-Test/Idle)
+        .tck        (clk),
+        .tms        (1'b0),
+        .trst_n     (rk4_vif.rst_n),
+        .tdi        (1'b0),
+        .tdo        (),
+        .tdo_oe     ()
     );
 
     // ----------------------------------------------------------------
