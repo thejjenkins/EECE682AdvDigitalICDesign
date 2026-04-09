@@ -18,7 +18,8 @@ RTL_SRC  = $(RTL_DIR)/rk4_top.sv           \
            $(RTL_DIR)/rk4_control_fsm.sv    \
            $(RTL_DIR)/rk4_uart_protocol.sv  \
            $(RTL_DIR)/uart_rx.sv            \
-           $(RTL_DIR)/uart_tx.sv
+           $(RTL_DIR)/uart_tx.sv            \
+           $(RTL_DIR)/jtag_tap.sv
 
 TOP      = rk4_top
 
