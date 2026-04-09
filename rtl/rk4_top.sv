@@ -14,7 +14,10 @@ module rk4_top (
     input  wire       trst_n,
     input  wire       tdi,
     output wire       tdo,
-    output wire       tdo_oe
+    output wire       tdo_oe,
+    // Simple test of inverter
+    input  wire       test_in,
+    output wire       test_out
 );
 
     wire clk_in;
@@ -32,6 +35,12 @@ module rk4_top (
         .rst_n   (rst),
         .uart_rx (uart_rx),
         .uart_tx (uart_tx)
+    );
+
+    // Simple test to verify that our chip is receiving power
+    inverter power_test(
+      .test_in(test_in),
+      .test_out(test_out)
     );
 
     // Scan chain signals driven by the JTAG TAP.

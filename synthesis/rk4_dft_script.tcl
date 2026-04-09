@@ -4,7 +4,7 @@ set_db lef_library /projects/howard/process/howard/tsmc/tsmc18/oa/v1.3a/IP_HOME/
 set_db library {tcb018gbwp7twcl.lib}
 set_db init_hdl_search_path ../rtl/
 
-read_hdl -sv {rk4_top.sv rk4_alu.sv rk4_clk_gen.sv rk4_ring_osc.sv rk4_clock_divider.sv rk4_control_fsm.sv rk4_f_engine.sv rk4_projectile_top.sv rk4_regfile.sv rk4_uart_protocol.sv uart_rx.sv uart_tx.sv jtag_tap.sv}
+read_hdl -sv {rk4_top.sv rk4_alu.sv rk4_clk_gen.sv rk4_ring_osc.sv rk4_clock_divider.sv rk4_control_fsm.sv rk4_f_engine.sv rk4_projectile_top.sv rk4_regfile.sv rk4_uart_protocol.sv uart_rx.sv uart_tx.sv jtag_tap.sv inverter.sv}
 elaborate
 
 read_sdc constraints.sdc
