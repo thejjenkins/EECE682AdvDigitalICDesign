@@ -13,7 +13,6 @@ read_sdc constraints.sdc
 set_db dft_scan_style muxed_scan 
 set_db dft_prefix dft_
 define_shift_enable -name SE -active high -create_port SE
-set_db design:rk4_top .dft_mix_clock_edges_in_scan_chains true
 
 # This is what was missing - tells DFT engine which clock to use for scan shift
 # define_test_clock -name clk_100MHz -period 10000 [get_ports clk_100MHz]
@@ -23,6 +22,9 @@ set_db design:rk4_top .dft_mix_clock_edges_in_scan_chains true
 # define_clock -name clk_mux -period 10000 [get_pins clock_unit/mux_osc_out_18_15/g1/z]
 
 check_dft_rules
+
+# Prevent scan cell replacement for non-DFT flip-flops (keeps JTAG TAP FFs intact)
+# set_db use_scan_seqs_for_non_dft false
 
 set_db syn_generic_effort medium
 set_db syn_map_effort medium
@@ -37,7 +39,10 @@ syn_opt
 # Check the DFT Rules
 check_dft_rules 
 set_db design:rk4_top .dft_min_number_of_scan_chains 1 
-define_scan_chain -name top_chain -sdi scan_in -sdo scan_out -shift_enable SE create_ports
+# set_db design:rk4_top .dft_mix_clock_edges_in_scan_chains true
+set_db [get_db insts *jtag*] .dft_dont_scan true
+set_db [get_db insts *ir*] .dft_dont_scan true
+define_scan_chain -name top_chain -sdi scan_in -sdo scan_out create_ports
 
 connect_scan_chains -auto_create_chains
 syn_opt -incremental
