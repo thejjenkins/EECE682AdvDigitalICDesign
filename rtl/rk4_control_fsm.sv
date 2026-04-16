@@ -46,7 +46,15 @@ module rk4_control_fsm #(
     input  wire        tx_pair_sent,
 
     output reg  [6:0]  step_cnt,
-    output reg         busy
+    output reg         busy,
+
+    // Debug interface
+    input  wire        dbg_halt_req,
+    input  wire        dbg_resume_req,
+    input  wire        dbg_single_step,
+    output wire        dbg_halted,
+    output wire        dbg_is_safe,
+    output wire [5:0]  dbg_fsm_state
 );
 
 // ALU op encodings
@@ -112,6 +120,16 @@ localparam [5:0]
 
 reg [5:0] state;
 
+wire is_safe_state = (state == S_IDLE)      | (state == S_K1_WAIT)  |
+                     (state == S_K2_WAIT)    | (state == S_K3_WAIT)  |
+                     (state == S_K4_WAIT)    | (state == S_CHECK)    |
+                     (state == S_TX_WAIT)    | (state == S_DONE_WAIT);
+
+reg halted_q;
+assign dbg_halted    = halted_q;
+assign dbg_is_safe   = is_safe_state;
+assign dbg_fsm_state = state;
+
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         state            <= S_IDLE;
@@ -127,6 +145,7 @@ always @(posedge clk or negedge rst_n) begin
         tx_send_done_marker <= 1'b0;
         step_cnt         <= 7'd0;
         busy             <= 1'b0;
+        halted_q         <= 1'b0;
     end else begin
         wr_en            <= 1'b0;
         f_start          <= 1'b0;
@@ -134,6 +153,13 @@ always @(posedge clk or negedge rst_n) begin
         tx_send_pair     <= 1'b0;
         tx_send_done_marker <= 1'b0;
 
+        // Halt/resume logic: halt only at safe states
+        if (dbg_halt_req && is_safe_state && !halted_q)
+            halted_q <= 1'b1;
+        if (dbg_resume_req && halted_q)
+            halted_q <= 1'b0;
+
+        if (!halted_q || dbg_single_step) begin
         case (state)
 
         S_IDLE: begin
@@ -416,6 +442,7 @@ always @(posedge clk or negedge rst_n) begin
         default: state <= S_IDLE;
 
         endcase
+        end // if (!halted_q || dbg_single_step)
     end
 end
 

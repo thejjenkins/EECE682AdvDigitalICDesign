@@ -34,20 +34,20 @@ module tb_top;
     //  DUT — rk4_top (full chip with clock generation)
     // ----------------------------------------------------------------
     rk4_top dut (
-        .clk_100MHz (clk),
-        .en         (rk4_vif.en),
+        .clk        (clk),
         .rst        (rk4_vif.rst_n),
-        .sel        (rk4_vif.sel),
         .uart_rx    (rk4_vif.uart_rx),
         .uart_tx    (rk4_vif.uart_tx),
-        .clk_1Hz    (),
-        // JTAG — tie off for functional simulation (TAP idles in Run-Test/Idle)
+        // JTAG — tie off for functional simulation
         .tck        (clk),
         .tms        (1'b0),
         .trst_n     (rk4_vif.rst_n),
         .tdi        (1'b0),
         .tdo        (),
-        .tdo_oe     ()
+        .tdo_oe     (),
+        // Inverter test — tie off
+        .test_in    (1'b0),
+        .test_out   ()
     );
 
     // ----------------------------------------------------------------

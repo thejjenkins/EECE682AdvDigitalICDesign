@@ -11,4 +11,7 @@
 ../../rtl/rk4_clock_divider.sv
 ../../rtl/rk4_clk_gen.sv
 ../../rtl/jtag_tap.sv
+../../rtl/jtag_debug_controller.sv
+../../rtl/jtag_snapshot_ctrl.sv
+../../rtl/inverter.sv
 ../../rtl/rk4_top.sv

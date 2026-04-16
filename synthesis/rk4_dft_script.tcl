@@ -4,7 +4,7 @@ set_db lef_library /projects/howard/process/howard/tsmc/tsmc18/oa/v1.3a/IP_HOME/
 set_db library {tcb018gbwp7twcl.lib}
 set_db init_hdl_search_path ../rtl/
 
-read_hdl -sv {rk4_top.sv rk4_alu.sv rk4_control_fsm.sv rk4_f_engine.sv rk4_projectile_top.sv rk4_regfile.sv rk4_uart_protocol.sv uart_rx.sv uart_tx.sv jtag_tap.sv inverter.sv}
+read_hdl -sv {rk4_top.sv rk4_alu.sv rk4_control_fsm.sv rk4_f_engine.sv rk4_projectile_top.sv rk4_regfile.sv rk4_uart_protocol.sv uart_rx.sv uart_tx.sv jtag_tap.sv inverter.sv jtag_debug_controller.sv jtag_snapshot_ctrl.sv}
 elaborate
 
 read_sdc constraints.sdc
@@ -42,6 +42,10 @@ set_db design:rk4_top .dft_min_number_of_scan_chains 1
 # set_db design:rk4_top .dft_mix_clock_edges_in_scan_chains true
 set_db [get_db insts *jtag*] .dft_dont_scan true
 set_db [get_db insts *ir*] .dft_dont_scan true
+set_db [get_db insts *dbg_ctrl*]  .dft_dont_scan true
+set_db [get_db insts *snap_ctrl*] .dft_dont_scan true
+set_db [get_db insts *_tgl_pipe*] .dft_dont_scan true
+set_db [get_db insts *_pipe_reg*] .dft_dont_scan true
 define_scan_chain -name top_chain -sdi scan_in -sdo scan_out create_ports
 
 connect_scan_chains -auto_create_chains

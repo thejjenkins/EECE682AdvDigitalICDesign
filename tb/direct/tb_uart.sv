@@ -105,8 +105,27 @@ rk4_projectile_top #(
     .BAUD_RATE(BAUD_RATE),
     .NUM_DIV  (NUM_DIV)
 ) u_dut (
-    .clk(clk), .rst_n(rst_n),
-    .uart_rx(integ_rx), .uart_tx(integ_tx)
+    .clk            (clk),
+    .rst_n          (rst_n),
+    .uart_rx        (integ_rx),
+    .uart_tx        (integ_tx),
+    // Debug inputs tied to safe defaults (no halt, no step, no IMEM read)
+    .dbg_halt_req   (1'b0),
+    .dbg_resume_req (1'b0),
+    .dbg_single_step(1'b0),
+    .dbg_imem_addr  (4'b0),
+    // Debug outputs left unconnected (purely observational)
+    .dbg_fsm_state  (),
+    .dbg_fsm_busy   (),
+    .dbg_halted     (),
+    .dbg_is_safe    (),
+    .dbg_step_cnt   (),
+    .dbg_f_active   (),
+    .dbg_f_pc       (),
+    .dbg_f_estate   (),
+    .dbg_dt_reg     (),
+    .dbg_regs_out   (),
+    .dbg_imem_rdata ()
 );
 
 // =====================================================================
