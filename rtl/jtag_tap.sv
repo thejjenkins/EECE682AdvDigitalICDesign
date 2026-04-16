@@ -24,7 +24,17 @@ module jtag_tap #(
     // Internal scan-chain interface
     output logic scan_enable_o,
     output logic scan_in_o,
-    input  logic scan_out_i
+    input  logic scan_out_i,
+
+    // Debug controller interface
+    output logic dbg_status_select_o,
+    output logic dbg_regbank_select_o,
+    output logic dbg_control_select_o,
+    output logic dbg_imem_select_o,
+    input  logic dbg_tdo_i,
+    output logic capture_dr_o,
+    output logic shift_dr_o,
+    output logic update_dr_o
 );
 
     // -----------------------------------------------------------------
@@ -46,6 +56,10 @@ module jtag_tap #(
         BYPASS0     = 'h0,
         IDCODE      = 'h1,
         SCAN_ACCESS = 'h2,
+        DBG_STATUS  = 'h3,
+        DBG_REGBANK = 'h4,
+        DBG_CONTROL = 'h5,
+        DBG_IMEM    = 'h6,
         BYPASS1     = 'h1f
     } ir_reg_e;
 
@@ -94,17 +108,27 @@ module jtag_tap #(
     //  Data register selection
     // -----------------------------------------------------------------
     logic idcode_select, bypass_select, scan_select;
+    logic dbg_status_select, dbg_regbank_select;
+    logic dbg_control_select, dbg_imem_select;
 
     always_comb begin
-        idcode_select = 1'b0;
-        bypass_select = 1'b0;
-        scan_select   = 1'b0;
+        idcode_select      = 1'b0;
+        bypass_select      = 1'b0;
+        scan_select        = 1'b0;
+        dbg_status_select  = 1'b0;
+        dbg_regbank_select = 1'b0;
+        dbg_control_select = 1'b0;
+        dbg_imem_select    = 1'b0;
         unique case (jtag_ir_q)
-            BYPASS0:     bypass_select = 1'b1;
-            IDCODE:      idcode_select = 1'b1;
-            SCAN_ACCESS: scan_select   = 1'b1;
-            BYPASS1:     bypass_select = 1'b1;
-            default:     bypass_select = 1'b1;
+            BYPASS0:     bypass_select      = 1'b1;
+            IDCODE:      idcode_select      = 1'b1;
+            SCAN_ACCESS: scan_select        = 1'b1;
+            DBG_STATUS:  dbg_status_select  = 1'b1;
+            DBG_REGBANK: dbg_regbank_select = 1'b1;
+            DBG_CONTROL: dbg_control_select = 1'b1;
+            DBG_IMEM:    dbg_imem_select    = 1'b1;
+            BYPASS1:     bypass_select      = 1'b1;
+            default:     bypass_select      = 1'b1;
         endcase
     end
 
@@ -157,6 +181,15 @@ module jtag_tap #(
     assign scan_enable_o = shift_dr & scan_select;
     assign scan_in_o     = tdi_i;
 
+    // Debug controller outputs
+    assign dbg_status_select_o  = dbg_status_select;
+    assign dbg_regbank_select_o = dbg_regbank_select;
+    assign dbg_control_select_o = dbg_control_select;
+    assign dbg_imem_select_o    = dbg_imem_select;
+    assign capture_dr_o         = capture_dr;
+    assign shift_dr_o           = shift_dr;
+    assign update_dr_o          = update_dr;
+
     // -----------------------------------------------------------------
     //  TDO output mux
     // -----------------------------------------------------------------
@@ -169,6 +202,8 @@ module jtag_tap #(
             unique case (jtag_ir_q)
                 IDCODE:      tdo_mux = idcode_q[0];
                 SCAN_ACCESS: tdo_mux = scan_out_i;
+                DBG_STATUS, DBG_REGBANK, DBG_CONTROL, DBG_IMEM:
+                             tdo_mux = dbg_tdo_i;
                 default:     tdo_mux = bypass_q;
             endcase
         end

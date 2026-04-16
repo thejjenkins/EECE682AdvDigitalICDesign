@@ -17,7 +17,26 @@ module rk4_projectile_top #(
     input  wire clk,
     input  wire rst_n,
     input  wire uart_rx,
-    output wire uart_tx
+    output wire uart_tx,
+
+    // Debug interface to snapshot controller
+    output wire [5:0]          dbg_fsm_state,
+    output wire                dbg_fsm_busy,
+    output wire                dbg_halted,
+    output wire                dbg_is_safe,
+    output wire [6:0]          dbg_step_cnt,
+    output wire                dbg_f_active,
+    output wire [3:0]          dbg_f_pc,
+    output wire [1:0]          dbg_f_estate,
+    output wire signed [31:0]  dbg_dt_reg,
+    input  wire                dbg_halt_req,
+    input  wire                dbg_resume_req,
+    input  wire                dbg_single_step,
+    // Regfile direct outputs
+    output wire signed [31:0]  dbg_regs_out [0:7],
+    // IMEM debug
+    input  wire [3:0]          dbg_imem_addr,
+    output wire [15:0]         dbg_imem_rdata
 );
 
 localparam integer BAUD_DIV = CLK_FREQ / BAUD_RATE;
@@ -81,7 +100,15 @@ rk4_regfile u_regfile (
     .rd_addr_b(rf_rd_addr_b), .rd_data_b(rf_rd_data_b),
     .wr_en(rf_wr_en), .wr_addr(rf_wr_addr), .wr_data(rf_wr_data),
     .v0_load(v0_load), .v0_data(v0_data),
-    .t_out(rf_t_out), .y_out(rf_y_out)
+    .t_out(rf_t_out), .y_out(rf_y_out),
+    .dbg_reg0_out(dbg_regs_out[0]),
+    .dbg_reg1_out(dbg_regs_out[1]),
+    .dbg_reg2_out(dbg_regs_out[2]),
+    .dbg_reg3_out(dbg_regs_out[3]),
+    .dbg_reg4_out(dbg_regs_out[4]),
+    .dbg_reg5_out(dbg_regs_out[5]),
+    .dbg_reg6_out(dbg_regs_out[6]),
+    .dbg_reg7_out(dbg_regs_out[7])
 );
 
 // =====================================================================
@@ -106,7 +133,12 @@ rk4_f_engine u_fengine (
     .prog_wr(prog_wr), .prog_addr(prog_addr), .prog_data(prog_data),
     .f_start(f_start), .f_active(f_active), .f_done(f_done),
     .src_a(fe_src_a), .src_b(fe_src_b), .alu_op(fe_alu_op),
-    .dest(fe_dest), .wr_en(fe_wr_en)
+    .dest(fe_dest), .wr_en(fe_wr_en),
+    .dbg_imem_addr(dbg_imem_addr),
+    .dbg_imem_rdata(dbg_imem_rdata),
+    .dbg_halted(dbg_halted),
+    .dbg_pc_out(dbg_f_pc),
+    .dbg_estate_out(dbg_f_estate)
 );
 
 // =====================================================================
@@ -132,8 +164,20 @@ rk4_control_fsm #(.NUM_DIV(NUM_DIV)) u_fsm (
     .tx_send_pair(fsm_tx_pair), .tx_send_done_marker(fsm_tx_done_marker),
     .tx_pair_sent(tx_pair_sent),
     .step_cnt(fsm_step_cnt),
-    .busy(fsm_busy)
+    .busy(fsm_busy),
+    .dbg_halt_req(dbg_halt_req),
+    .dbg_resume_req(dbg_resume_req),
+    .dbg_single_step(dbg_single_step),
+    .dbg_halted(dbg_halted),
+    .dbg_is_safe(dbg_is_safe),
+    .dbg_fsm_state(dbg_fsm_state)
 );
+
+// Debug signal pass-throughs
+assign dbg_fsm_busy  = fsm_busy;
+assign dbg_step_cnt  = fsm_step_cnt;
+assign dbg_f_active  = f_active;
+assign dbg_dt_reg    = dt_reg;
 
 // =====================================================================
 //  dt / dt_half Latch

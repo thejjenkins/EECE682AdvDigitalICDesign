@@ -39,7 +39,14 @@ module rk4_f_engine (
     output reg  [2:0]  src_b,
     output reg  [2:0]  alu_op,
     output reg  [2:0]  dest,
-    output reg         wr_en
+    output reg         wr_en,
+
+    // Debug interface
+    input  wire [3:0]  dbg_imem_addr,
+    output wire [15:0] dbg_imem_rdata,
+    input  wire        dbg_halted,
+    output wire [3:0]  dbg_pc_out,
+    output wire [1:0]  dbg_estate_out
 );
 
 // Instruction memory: 16 x 16-bit
@@ -47,6 +54,12 @@ reg [15:0] imem [0:15];
 reg [3:0]  pc;
 
 wire [15:0] cur_instr = imem[pc];
+
+// Debug: gated IMEM read — returns poison when engine is running
+assign dbg_imem_rdata = (dbg_halted || estate == S_IDLE)
+                        ? imem[dbg_imem_addr] : 16'hDEAD;
+assign dbg_pc_out     = pc;
+assign dbg_estate_out = estate;
 
 // Decode fields
 wire [2:0] dec_src_a  = cur_instr[15:13];
