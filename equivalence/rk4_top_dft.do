@@ -1,13 +1,13 @@
 set log file rk4_top_dft_lec.log -replace
 read library /projects/howard/process/howard/tsmc/tsmc18/oa/v1.3a/IP_HOME/tsmc/STD_CELL/tcb018gbwp7t/290a/digital/Front_End/verilog/tcb018gbwp7t_270a/tcb018gbwp7t.v -verilog -both
-read design ../rtl/rk4_top.sv ../rtl/rk4_alu.sv ../rtl/rk4_control_fsm.sv ../rtl/rk4_f_engine.sv ../rtl/rk4_projectile_top.sv ../rtl/rk4_regfile.sv ../rtl/rk4_uart_protocol.sv  ../rtl/uart_rx.sv ../rtl/uart_tx.sv ../rtl/jtag_tap.sv ../rtl/inverter.sv -systemverilog -golden
+read design ../rtl/rk4_alu.sv ../rtl/rk4_control_fsm.sv ../rtl/rk4_f_engine.sv ../rtl/rk4_projectile_top.sv ../rtl/rk4_regfile.sv ../rtl/rk4_uart_protocol.sv  ../rtl/uart_rx.sv ../rtl/uart_tx.sv ../rtl/jtag_tap.sv ../rtl/inverter.sv -systemverilog -golden
 read design ../synthesis/outputs/rk4_top_netlist_dft.v -verilog -revised
 // add pin constraints 0 en -both
 // add pin constraints 1 sel[0] -both
 // add pin constraints 1 sel[1] -both
-add pin constraints 0 SE -revised
-add ignored inputs scan_in -revised
-add ignored outputs scan_out -revised
+add pin constraints 0 dft_sen -revised
+add ignored inputs dft_sdi -revised
+add ignored outputs dft_sdo -revised
 set flatten model -seq_constant
 set flatten model -seq_redundant
 set flatten model -gated_clock

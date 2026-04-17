@@ -2,23 +2,30 @@
 
 module rk4_top (
     //input  wire       clk_100MHz,
-    input  wire       clk,
     // input  wire       en,
-    input  wire       rst,
     // input  wire [1:0] sel,
+    input  wire       clk,
+    input  wire       rst,
     input  wire       uart_rx,
     output wire       uart_tx,
     // output wire       clk_1Hz,
+    
+    // Simple test of inverter
+    input  wire test_in,
+    output wire test_out,
+
     // JTAG interface
     input  wire       tck,
     input  wire       tms,
     input  wire       trst_n,
     input  wire       tdi,
-    output wire       tdo,
-    output wire       tdo_oe,
-    // Simple test of inverter
-    input  wire       test_in,
-    output wire       test_out
+    output wire       tdo
+    // output wire       tdo_oe,
+
+    // JTAG scan chain interface (connected to jtag_tap)
+    // input  wire dft_sdi,
+    // input  wire dft_sen,
+    // output wire dft_sdo
 );
 
     // wire clk_in;
@@ -35,31 +42,41 @@ module rk4_top (
         .clk     (clk),
         .rst_n   (rst),
         .uart_rx (uart_rx),
-        .uart_tx (uart_tx)
+        .uart_tx (uart_tx),
+        .test_in (test_in),
+        .test_out(test_out),
+        .tck     (tck),
+        .tms     (tms),
+        .trst_n  (trst_n),
+        .tdi     (tdi),
+        .tdo     (tdo)
+        // .dft_sdi (dft_sdi),
+        // .dft_sen (dft_sen),
+        // .dft_sdo (dft_sdo)
     );
 
     // Simple test to verify that our chip is receiving power
-    inverter power_test(
-      .test_in(test_in),
-      .test_out(test_out)
-    );
+    // inverter power_test(
+    //   .test_in(test_in),
+    //   .test_out(test_out)
+    // );
 
     // Scan chain signals driven by the JTAG TAP.
     // Genus connects its inserted scan chain to these wires during DFT synthesis.
-    wire scan_enable, scan_in, scan_out;
-    assign scan_out = 1'b0;
+    // wire scan_enable, scan_in, scan_out;
+    // assign scan_out = 1'b0;
 
-    jtag_tap u_jtag_tap (
-        .tck_i         (tck),
-        .tms_i         (tms),
-        .trst_ni       (trst_n),
-        .tdi_i         (tdi),
-        .tdo_o         (tdo),
-        .tdo_oe_o      (tdo_oe),
-        .scan_enable_o (scan_enable),
-        .scan_in_o     (scan_in),
-        .scan_out_i    (scan_out)
-    );
+    // jtag_tap u_jtag_tap (
+    //     .tck_i         (tck),
+    //     .tms_i         (tms),
+    //     .trst_ni       (trst_n),
+    //     .tdi_i         (tdi),
+    //     .tdo_o         (tdo),
+    //     .tdo_oe_o      (tdo_oe),
+    //     .scan_enable_o (scan_enable),
+    //     .scan_in_o     (scan_in),
+    //     .scan_out_i    (scan_out)
+    // );
 
     //assign clk_1Hz = clk_in;
 

@@ -5,11 +5,11 @@ proc pause {message} {
 }
 
 
-build_model -workdir mydir -designsource rk4_top.test_netlist.v -techlib /projects/howard/process/howard/tsmc/tsmc18/oa/v1.3a/IP_HOME/tsmc/STD_CELL/tcb018gbwp7t/290a/digital/Front_End/verilog/tcb018gbwp7t_270a/tcb018gbwp7t.v -designtop rk4_top
+build_model -workdir mydir -designsource rk4_projectile_top.test_netlist.v -techlib /projects/howard/process/howard/tsmc/tsmc18/oa/v1.3a/IP_HOME/tsmc/STD_CELL/tcb018gbwp7t/290a/digital/Front_End/verilog/tcb018gbwp7t_270a/tcb018gbwp7t.v -designtop rk4_projectile_top
 
 pause "Hit Enter to Build Test Mode"
 
-build_testmode -workdir mydir -testmode FULLSCAN -assignfile  rk4_top.FULLSCAN.pinassign
+build_testmode -workdir mydir -testmode FULLSCAN -assignfile  rk4_projectile_top.FULLSCAN.pinassign
 pause "Hit Enter to Verify Test Structures"
 
 verify_test_structures -workdir mydir -testmode FULLSCAN

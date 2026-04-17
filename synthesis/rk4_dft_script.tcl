@@ -4,7 +4,7 @@ set_db lef_library /projects/howard/process/howard/tsmc/tsmc18/oa/v1.3a/IP_HOME/
 set_db library {tcb018gbwp7twcl.lib}
 set_db init_hdl_search_path ../rtl/
 
-read_hdl -sv {rk4_top.sv rk4_alu.sv rk4_control_fsm.sv rk4_f_engine.sv rk4_projectile_top.sv rk4_regfile.sv rk4_uart_protocol.sv uart_rx.sv uart_tx.sv jtag_tap.sv inverter.sv}
+read_hdl -sv {rk4_alu.sv rk4_control_fsm.sv rk4_f_engine.sv rk4_projectile_top.sv rk4_regfile.sv rk4_uart_protocol.sv uart_rx.sv uart_tx.sv jtag_tap.sv inverter.sv}
 elaborate
 
 read_sdc constraints.sdc
@@ -12,7 +12,8 @@ read_sdc constraints.sdc
 # DFT
 set_db dft_scan_style muxed_scan 
 set_db dft_prefix dft_
-define_shift_enable -name SE -active high -create_port SE
+set_db [get_db modules jtag_tap] .dft_dont_scan true
+define_shift_enable -name scan_enable -active high -create_port dft_sen
 
 # This is what was missing - tells DFT engine which clock to use for scan shift
 # define_test_clock -name clk_100MHz -period 10000 [get_ports clk_100MHz]
@@ -38,11 +39,11 @@ syn_opt
 
 # Check the DFT Rules
 check_dft_rules 
-set_db design:rk4_top .dft_min_number_of_scan_chains 1 
+set_db design:rk4_projectile_top .dft_min_number_of_scan_chains 1 
 # set_db design:rk4_top .dft_mix_clock_edges_in_scan_chains true
-set_db [get_db insts *jtag*] .dft_dont_scan true
-set_db [get_db insts *ir*] .dft_dont_scan true
-define_scan_chain -name top_chain -sdi scan_in -sdo scan_out create_ports
+# set_db [get_db insts *jtag*] .dft_dont_scan true
+# set_db [get_db insts *ir*] .dft_dont_scan true
+define_scan_chain -name top_chain -sdi dft_sdi -sdo dft_sdo -create_ports
 
 connect_scan_chains -auto_create_chains
 syn_opt -incremental
@@ -57,7 +58,7 @@ report_qor    > reports/rk4_top_dft_qor.rpt
 
 #Outputs
 report_scan_chains
-write_dft_atpg -library outputs/basiccells.v -directory outputs/atpg
+write_dft_atpg -library outputs/basiccells.v
 write_hdl > outputs/rk4_top_netlist_dft.v
 write_sdc > outputs/rk4_top_sdc_dft.sdc
 write_sdf -nonegchecks -edges check_edge -timescale ns -recrem split  -setuphold split > outputs/dft_delays.sdf

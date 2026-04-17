@@ -19,7 +19,7 @@ module jtag_tap #(
     input  logic trst_ni,
     input  logic tdi_i,
     output logic tdo_o,
-    output logic tdo_oe_o,
+    // output logic tdo_oe_o,
 
     // Internal scan-chain interface
     output logic scan_enable_o,
@@ -178,10 +178,10 @@ module jtag_tap #(
     always_ff @(negedge tck_i or negedge trst_ni) begin
         if (!trst_ni) begin
             tdo_o    <= 1'b0;
-            tdo_oe_o <= 1'b0;
+            // tdo_oe_o <= 1'b0;
         end else begin
             tdo_o    <= tdo_mux;
-            tdo_oe_o <= (shift_ir | shift_dr);
+            // tdo_oe_o <= (shift_ir | shift_dr);
         end
     end
 
