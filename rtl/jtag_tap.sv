@@ -2,9 +2,9 @@
 
 // IEEE 1149.1 JTAG TAP Controller for the RK4 ODE Solver
 //
-// Provides chip identification (IDCODE) and internal scan chain access
-// (SCAN_ACCESS) through standard JTAG pins.  Adapted from the PULP
-// platform dmi_jtag_tap.sv reference implementation.
+// Provides chip identification (IDCODE) and BYPASS through standard JTAG
+// pins.  Scan chain access uses dedicated top-level ports created by Genus
+// DFT.  Adapted from the PULP platform dmi_jtag_tap.sv reference.
 
 module jtag_tap #(
     parameter int unsigned IrLength    = 5,
@@ -18,13 +18,7 @@ module jtag_tap #(
     input  logic tms_i,
     input  logic trst_ni,
     input  logic tdi_i,
-    output logic tdo_o,
-    // output logic tdo_oe_o,
-
-    // Internal scan-chain interface
-    output logic scan_enable_o,
-    output logic scan_in_o,
-    input  logic scan_out_i
+    output logic tdo_o
 );
 
     // -----------------------------------------------------------------
@@ -45,7 +39,6 @@ module jtag_tap #(
     typedef enum logic [IrLength-1:0] {
         BYPASS0     = 'h0,
         IDCODE      = 'h1,
-        SCAN_ACCESS = 'h2,
         BYPASS1     = 'h1f
     } ir_reg_e;
 
@@ -93,18 +86,14 @@ module jtag_tap #(
     // -----------------------------------------------------------------
     //  Data register selection
     // -----------------------------------------------------------------
-    logic idcode_select, bypass_select, scan_select;
+    logic idcode_select, bypass_select;
 
     always_comb begin
         idcode_select = 1'b0;
         bypass_select = 1'b0;
-        scan_select   = 1'b0;
         unique case (jtag_ir_q)
-            BYPASS0:     bypass_select = 1'b1;
-            IDCODE:      idcode_select = 1'b1;
-            SCAN_ACCESS: scan_select   = 1'b1;
-            BYPASS1:     bypass_select = 1'b1;
-            default:     bypass_select = 1'b1;
+            IDCODE:  idcode_select = 1'b1;
+            default: bypass_select = 1'b1;
         endcase
     end
 
@@ -152,12 +141,6 @@ module jtag_tap #(
     end
 
     // -----------------------------------------------------------------
-    //  Internal scan chain interface
-    // -----------------------------------------------------------------
-    assign scan_enable_o = shift_dr & scan_select;
-    assign scan_in_o     = tdi_i;
-
-    // -----------------------------------------------------------------
     //  TDO output mux
     // -----------------------------------------------------------------
     logic tdo_mux;
@@ -167,9 +150,8 @@ module jtag_tap #(
             tdo_mux = jtag_ir_shift_q[0];
         end else begin
             unique case (jtag_ir_q)
-                IDCODE:      tdo_mux = idcode_q[0];
-                SCAN_ACCESS: tdo_mux = scan_out_i;
-                default:     tdo_mux = bypass_q;
+                IDCODE:  tdo_mux = idcode_q[0];
+                default: tdo_mux = bypass_q;
             endcase
         end
     end

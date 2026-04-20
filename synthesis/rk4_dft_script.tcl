@@ -43,7 +43,7 @@ set_db design:rk4_projectile_top .dft_min_number_of_scan_chains 1
 # set_db design:rk4_top .dft_mix_clock_edges_in_scan_chains true
 # set_db [get_db insts *jtag*] .dft_dont_scan true
 # set_db [get_db insts *ir*] .dft_dont_scan true
-define_scan_chain -name top_chain -sdi dft_sdi -sdo dft_sdo -create_ports
+define_scan_chain -name top_chain -sdi dft_sdi -sdo dft_sdo -create_ports -non_shared_output
 
 connect_scan_chains -auto_create_chains
 syn_opt -incremental
@@ -58,7 +58,8 @@ report_qor    > reports/rk4_top_dft_qor.rpt
 
 #Outputs
 report_scan_chains
-write_dft_atpg -library outputs/basiccells.v
+write_dft_atpg -library outputs/basiccells.v 
+# -directory outputs/atpg
 write_hdl > outputs/rk4_top_netlist_dft.v
 write_sdc > outputs/rk4_top_sdc_dft.sdc
 write_sdf -nonegchecks -edges check_edge -timescale ns -recrem split  -setuphold split > outputs/dft_delays.sdf

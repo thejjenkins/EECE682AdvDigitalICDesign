@@ -20,12 +20,7 @@ module rk4_top (
     input  wire       trst_n,
     input  wire       tdi,
     output wire       tdo
-    // output wire       tdo_oe,
-
-    // JTAG scan chain interface (connected to jtag_tap)
-    // input  wire dft_sdi,
-    // input  wire dft_sen,
-    // output wire dft_sdo
+    // output wire       tdo_oe
 );
 
     // wire clk_in;
@@ -50,9 +45,6 @@ module rk4_top (
         .trst_n  (trst_n),
         .tdi     (tdi),
         .tdo     (tdo)
-        // .dft_sdi (dft_sdi),
-        // .dft_sen (dft_sen),
-        // .dft_sdo (dft_sdo)
     );
 
     // Simple test to verify that our chip is receiving power

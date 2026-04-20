@@ -29,12 +29,7 @@ module rk4_projectile_top #(
     input  wire       trst_n,
     input  wire       tdi,
     output wire       tdo
-    // output wire       tdo_oe,
-
-    // JTAG scan chain interface (connected to jtag_tap)
-    // input  wire dft_sdi,
-    // input  wire dft_sen,
-    // output wire dft_sdo
+    // output wire       tdo_oe
 );
 
 localparam integer BAUD_DIV = CLK_FREQ / BAUD_RATE;
@@ -45,21 +40,14 @@ inverter power_test(
     .test_out(test_out)
 );
 
-// Scan chain signals driven by the JTAG TAP.
-// Genus connects its inserted scan chain to these wires during DFT synthesis.
-wire dft_sen, dft_sdi, dft_sdo;
-// assign scan_out = 1'b0;
-
+// JTAG TAP -- provides IDCODE/BYPASS over JTAG.
+// Scan chain uses dedicated top-level ports created by Genus DFT.
 jtag_tap u_jtag_tap (
-    .tck_i         (tck),
-    .tms_i         (tms),
-    .trst_ni       (trst_n),
-    .tdi_i         (tdi),
-    .tdo_o         (tdo),
-    // .tdo_oe_o      (tdo_oe),
-    .scan_enable_o (dft_sen),
-    .scan_in_o     (dft_sdi),
-    .scan_out_i    (dft_sdo)
+    .tck_i   (tck),
+    .tms_i   (tms),
+    .trst_ni (trst_n),
+    .tdi_i   (tdi),
+    .tdo_o   (tdo)
 );
 
 // =====================================================================
