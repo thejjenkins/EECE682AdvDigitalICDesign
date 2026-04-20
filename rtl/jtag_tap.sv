@@ -39,6 +39,15 @@ module jtag_tap #(
     typedef enum logic [IrLength-1:0] {
         BYPASS0     = 'h0,
         IDCODE      = 'h1,
+        dbg_ALU_RESULT = 'h2,
+        dbg_FSM_CONTROL_STATE = 'h3,
+        dbg_F_ENGINE_PC = 'h4,
+        dbg_CUR_INSTR = 'h5,
+        dbg_REG_WR_EN = 'h6,
+        dbg_REG_V0_DATA = 'h7,
+        dbg_RUN_START = 'h8,
+        dbg_FSM_BUSY = 'h9,
+        dbg_UART_FSM = 'ha,
         BYPASS1     = 'h1f
     } ir_reg_e;
 

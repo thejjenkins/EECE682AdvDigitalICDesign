@@ -27,7 +27,11 @@ module rk4_regfile (
 
     // Direct outputs for TX snapshot (no read-port contention)
     output wire signed [31:0] t_out,
-    output wire signed [31:0] y_out
+    output wire signed [31:0] y_out,
+
+    // debug outputs for JTAG
+    output wire dbg_wr_en,
+    output wire signed [31:0] dbg_v0_data
 );
 
 reg signed [31:0] regs [0:7];

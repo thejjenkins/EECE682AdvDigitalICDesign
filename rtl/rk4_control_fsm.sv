@@ -46,7 +46,10 @@ module rk4_control_fsm #(
     input  wire        tx_pair_sent,
 
     output reg  [6:0]  step_cnt,
-    output reg         busy
+    output reg         busy,
+
+    // debug state for JTAG
+    output wire  [5:0]  dbg_state
 );
 
 // ALU op encodings
@@ -111,6 +114,8 @@ localparam [5:0]
     S_DONE_WAIT  = 6'd36;
 
 reg [5:0] state;
+// for JTAG debug
+assign dbg_state = state;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin

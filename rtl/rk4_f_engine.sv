@@ -39,7 +39,11 @@ module rk4_f_engine (
     output reg  [2:0]  src_b,
     output reg  [2:0]  alu_op,
     output reg  [2:0]  dest,
-    output reg         wr_en
+    output reg         wr_en,
+
+    // debug output for JTAG
+    output wire  [3:0] dbg_pc,
+    output wire  [15:0] dbg_cur_instrs
 );
 
 // Instruction memory: 16 x 16-bit
