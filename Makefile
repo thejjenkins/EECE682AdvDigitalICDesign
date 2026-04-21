@@ -26,6 +26,7 @@ XRUN_ARGS = -sv -timescale 1ns/1ps -access +rwc
        uvm uvm-gui uvm-regress uvm-cov uvm-cov-gui uvm-full uvm-full-gui uvm-clean \
        uvm-gate uvm-gate-gui uvm-gate-regress uvm-gate-cov uvm-gate-cov-gui uvm-gate-clean \
        synth synth-dft synth-chip atpg lec lec-dft \
+       innovus-setup check-setup \
        clean clean-all
 
 compile:
@@ -108,6 +109,23 @@ lec:
 
 lec-dft:
 	cd $(EQUIV_DIR) && lec -Dofile rk4_top_dft.do -NOGui -XL -Color
+
+# --- Innovus P&R setup ---
+PHYS_DIR     = $(PROJ_ROOT)/physical_synth
+
+innovus-setup:
+	mkdir -p $(PHYS_DIR)
+	cp $(SYNTH_DIR)/outputs/chip_netlist.v $(PHYS_DIR)/
+	cp $(SYNTH_DIR)/outputs/chip_sdc.sdc $(PHYS_DIR)/
+	cp /projects/howard/innovus/chip_timing.tcl $(PHYS_DIR)/
+	cp /projects/howard/innovus/power.tcl $(PHYS_DIR)/
+
+# --- Environment check ---
+check-setup:
+	@echo "TSMC_PDK_V = $(TSMC_PDK_V)"
+	@echo "IO_PIN     = $(IO_PIN)"
+	@which innovus
+	@which xrun
 
 clean:
 	rm -rf xcelium.d INCA_libs xrun.log xrun.history waves.shm
