@@ -6,7 +6,7 @@
 // Target:  TSMC 180 nm       Format: Q16.16 signed fixed-point
 
 module rk4_projectile_top #(
-    parameter integer CLK_FREQ  = 1_000_000,
+    parameter integer CLK_FREQ  = 10_000_000,
     parameter integer BAUD_RATE = 9_600,
     parameter integer NUM_DIV   = 100,
     parameter signed [31:0] G_FIXED     = 32'sd642252,
@@ -38,16 +38,6 @@ localparam integer BAUD_DIV = CLK_FREQ / BAUD_RATE;
 inverter power_test(
     .test_in(test_in),
     .test_out(test_out)
-);
-
-// JTAG TAP -- provides IDCODE/BYPASS over JTAG.
-// Scan chain uses dedicated top-level ports created by Genus DFT.
-jtag_tap u_jtag_tap (
-    .tck_i   (tck),
-    .tms_i   (tms),
-    .trst_ni (trst_n),
-    .tdi_i   (tdi),
-    .tdo_o   (tdo)
 );
 
 // =====================================================================
@@ -84,13 +74,15 @@ wire        v0_load;
 wire signed [31:0] v0_data;
 wire        run_start;
 wire        fsm_busy;
+wire [1:0]  proto_pstate;
 
 rk4_uart_protocol u_proto (
     .clk(clk), .rst_n(rst_n),
     .rx_valid(rx_valid), .rx_data(rx_data),
     .prog_wr(prog_wr), .prog_addr(prog_addr), .prog_data(prog_data),
     .v0_load(v0_load), .v0_data(v0_data),
-    .run_start(run_start), .fsm_busy(fsm_busy)
+    .run_start(run_start), .fsm_busy(fsm_busy),
+    .pstate_o(proto_pstate)
 );
 
 // =====================================================================
@@ -128,13 +120,16 @@ rk4_alu u_alu (
 wire        f_start, f_active, f_done;
 wire [2:0]  fe_src_a, fe_src_b, fe_alu_op, fe_dest;
 wire        fe_wr_en;
+wire [1:0]  fe_estate;
+wire [3:0]  fe_pc;
 
 rk4_f_engine u_fengine (
     .clk(clk), .rst_n(rst_n),
     .prog_wr(prog_wr), .prog_addr(prog_addr), .prog_data(prog_data),
     .f_start(f_start), .f_active(f_active), .f_done(f_done),
     .src_a(fe_src_a), .src_b(fe_src_b), .alu_op(fe_alu_op),
-    .dest(fe_dest), .wr_en(fe_wr_en)
+    .dest(fe_dest), .wr_en(fe_wr_en),
+    .estate_o(fe_estate), .pc_o(fe_pc)
 );
 
 // =====================================================================
@@ -146,6 +141,7 @@ wire        fsm_wr_en, fsm_latch_dt;
 wire [2:0]  fsm_f_dest_k;
 wire        fsm_tx_pair, fsm_tx_done_marker;
 wire [6:0]  fsm_step_cnt;
+wire [5:0]  fsm_state;
 reg         tx_pair_sent;
 
 rk4_control_fsm #(.NUM_DIV(NUM_DIV)) u_fsm (
@@ -160,7 +156,8 @@ rk4_control_fsm #(.NUM_DIV(NUM_DIV)) u_fsm (
     .tx_send_pair(fsm_tx_pair), .tx_send_done_marker(fsm_tx_done_marker),
     .tx_pair_sent(tx_pair_sent),
     .step_cnt(fsm_step_cnt),
-    .busy(fsm_busy)
+    .busy(fsm_busy),
+    .state_o(fsm_state)
 );
 
 // =====================================================================
@@ -284,5 +281,37 @@ always @(posedge clk or negedge rst_n) begin
         endcase
     end
 end
+
+// =====================================================================
+//  JTAG TAP — debug bus with IDCODE/BYPASS + multiplexed debug registers
+// =====================================================================
+jtag_tap u_jtag_tap (
+    .tck_i              (tck),
+    .tms_i              (tms),
+    .trst_ni            (trst_n),
+    .tdi_i              (tdi),
+    .tdo_o              (tdo),
+
+    .dbg_busy_i         (fsm_busy),
+    .dbg_fsm_state_i    (fsm_state),
+    .dbg_step_cnt_i     (fsm_step_cnt),
+    .dbg_uart_rx_i      (uart_rx),
+
+    .dbg_rf_t_i         (rf_t_out),
+    .dbg_rf_y_i         (rf_y_out),
+    .dbg_dt_i           (dt_reg),
+
+    .dbg_alu_result_i   (alu_result),
+    .dbg_alu_a_i        (alu_a),
+    .dbg_alu_b_i        (alu_b),
+
+    .dbg_f_active_i     (f_active),
+    .dbg_fe_estate_i    (fe_estate),
+    .dbg_fe_pc_i        (fe_pc),
+
+    .dbg_tx_ready_i     (tx_ready),
+    .dbg_tx_bytes_left_i(tx_bytes_left),
+    .dbg_proto_pstate_i (proto_pstate)
+);
 
 endmodule

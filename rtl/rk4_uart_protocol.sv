@@ -33,16 +33,8 @@ module rk4_uart_protocol (
     // Busy flag from FSM (reject run while busy)
     input  wire        fsm_busy,
 
-    // debug outputs for JTAG
-    output wire dbg_run_start,
-    output wire dbg_fsm_busy,
-    output wire [1:0] dbg_uart_fsm
+    output wire [1:0]  pstate_o
 );
-
-//JTAG debug assignments
-assign dbg_run_start = run_start;
-assign dbg_fsm_busy = fsm_busy;
-assign dbg_uart_fsm = pstate;
 
 localparam [7:0] CMD_LOAD_PROG = 8'h01;
 localparam [7:0] CMD_RUN       = 8'h02;
@@ -54,6 +46,9 @@ localparam [1:0]
     ST_V0_BYTE  = 2'd3;
 
 reg [1:0]  pstate;
+
+assign pstate_o = pstate;
+
 reg [2:0]  byte_cnt;    // counts bytes within a command payload
 reg [3:0]  instr_idx;   // which instruction we're loading
 reg [7:0]  lo_byte;     // temp for little-endian instruction assembly

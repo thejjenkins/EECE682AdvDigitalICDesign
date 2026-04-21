@@ -41,9 +41,8 @@ module rk4_f_engine (
     output reg  [2:0]  dest,
     output reg         wr_en,
 
-    // debug output for JTAG
-    output wire  [3:0] dbg_pc,
-    output wire  [15:0] dbg_cur_instrs
+    output wire [1:0]  estate_o,
+    output wire [3:0]  pc_o
 );
 
 // Instruction memory: 16 x 16-bit
@@ -79,6 +78,9 @@ localparam S_WB      = 2'd2;
 localparam S_DONE    = 2'd3;
 
 reg [1:0] estate;
+
+assign estate_o = estate;
+assign pc_o     = pc;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin

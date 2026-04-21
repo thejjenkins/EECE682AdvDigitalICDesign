@@ -7,11 +7,7 @@ TEST_DIR     = $(SYNTH_DIR)/test_scripts
 EQUIV_DIR    = $(PROJ_ROOT)/equivalence
 
 RTL_DIR  = rtl
-RTL_SRC  = $(RTL_DIR)/rk4_top.sv           \
-           $(RTL_DIR)/rk4_clk_gen.sv        \
-           $(RTL_DIR)/rk4_ring_osc.sv       \
-           $(RTL_DIR)/rk4_clock_divider.sv  \
-           $(RTL_DIR)/rk4_projectile_top.sv \
+RTL_SRC  = $(RTL_DIR)/rk4_projectile_top.sv \
            $(RTL_DIR)/rk4_regfile.sv        \
            $(RTL_DIR)/rk4_alu.sv            \
            $(RTL_DIR)/rk4_f_engine.sv       \
@@ -19,16 +15,17 @@ RTL_SRC  = $(RTL_DIR)/rk4_top.sv           \
            $(RTL_DIR)/rk4_uart_protocol.sv  \
            $(RTL_DIR)/uart_rx.sv            \
            $(RTL_DIR)/uart_tx.sv            \
-           $(RTL_DIR)/jtag_tap.sv
+           $(RTL_DIR)/jtag_tap.sv           \
+           $(RTL_DIR)/inverter.sv
 
-TOP      = rk4_top
+TOP      = rk4_projectile_top
 
 XRUN_ARGS = -sv -timescale 1ns/1ps -access +rwc
 
-.PHONY: compile sim gui lint \
+.PHONY: compile sim gui lint sim-chip \
        uvm uvm-gui uvm-regress uvm-cov uvm-cov-gui uvm-full uvm-full-gui uvm-clean \
        uvm-gate uvm-gate-gui uvm-gate-regress uvm-gate-cov uvm-gate-cov-gui uvm-gate-clean \
-       synth synth-dft atpg lec lec-dft \
+       synth synth-dft synth-chip atpg lec lec-dft \
        clean clean-all
 
 compile:
@@ -42,6 +39,10 @@ gui:
 
 lint:
 	$(XRUN) -lint $(XRUN_ARGS) -top $(TOP) $(RTL_SRC)
+
+# --- Chip-level sim (with IO pads + standard cells) ---
+sim-chip:
+	$(XRUN) -timescale 1ns/1ps $(RTL_DIR)/chip.v $(TSMC_PDK_V)/tcb018gbwp7t.v $(IO_PIN)/tpd018nv.v
 
 # --- UVM testbench ---
 uvm:
@@ -93,6 +94,9 @@ synth:
 
 synth-dft:
 	cd $(SYNTH_DIR) && genus -f rk4_dft_script.tcl -log dft_debug.log
+
+synth-chip:
+	cd $(SYNTH_DIR) && genus -f chip_script_adv.tcl
 
 # --- ATPG (Modus) ---
 atpg:
