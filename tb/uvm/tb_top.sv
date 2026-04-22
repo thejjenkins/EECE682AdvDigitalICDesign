@@ -7,17 +7,15 @@ module tb_top;
 
     // ----------------------------------------------------------------
     //  Simulation parameters
-    //  The clock divider (div_count=49) divides by 100.
-    //  Internal BAUD_DIV = CLK_FREQ / BAUD_RATE = 1_000_000 / 9_600 = 104.
-    //  The driver sees the external clock, so baud_div = 104 * 100 = 10400.
+    //  rk4_projectile_top uses CLK_FREQ=10 MHz, BAUD_RATE=9600
+    //  => internal BAUD_DIV = 10_000_000 / 9_600 = 1041
+    //  The testbench clock matches CLK_FREQ directly (no clock divider).
     // ----------------------------------------------------------------
-    localparam integer BAUD_DIV_INT = 104;
-    localparam integer CLK_DIV     = 100;
-    localparam integer BAUD_DIV    = BAUD_DIV_INT * CLK_DIV;
-    localparam real    CLK_PER     = 0.01;   // 10 ps external clock
+    localparam integer BAUD_DIV    = 1041;
+    localparam real    CLK_PER     = 100.0;  // 100 ns -> 10 MHz
 
     // ----------------------------------------------------------------
-    //  Clock generation
+    //  Clock generation (system clock)
     // ----------------------------------------------------------------
     logic clk;
     initial begin
@@ -31,23 +29,20 @@ module tb_top;
     rk4_if rk4_vif (.clk(clk));
 
     // ----------------------------------------------------------------
-    //  DUT — rk4_top (full chip with clock generation)
+    //  DUT — rk4_projectile_top (digital core, no clock divider)
     // ----------------------------------------------------------------
-    rk4_top dut (
-        .clk_100MHz (clk),
-        .en         (rk4_vif.en),
-        .rst        (rk4_vif.rst_n),
-        .sel        (rk4_vif.sel),
+    rk4_projectile_top dut (
+        .clk        (clk),
+        .rst_n      (rk4_vif.rst_n),
         .uart_rx    (rk4_vif.uart_rx),
         .uart_tx    (rk4_vif.uart_tx),
-        .clk_1Hz    (),
-        // JTAG — tie off for functional simulation (TAP idles in Run-Test/Idle)
-        .tck        (clk),
-        .tms        (1'b0),
-        .trst_n     (rk4_vif.rst_n),
-        .tdi        (1'b0),
-        .tdo        (),
-        .tdo_oe     ()
+        .test_in    (rk4_vif.test_in),
+        .test_out   (rk4_vif.test_out),
+        .tck        (rk4_vif.tck),
+        .tms        (rk4_vif.tms),
+        .trst_n     (rk4_vif.trst_n),
+        .tdi        (rk4_vif.tdi),
+        .tdo        (rk4_vif.tdo)
     );
 
     // ----------------------------------------------------------------
@@ -63,8 +58,8 @@ module tb_top;
     //  Hard timeout safety net
     // ----------------------------------------------------------------
     initial begin
-        #50ms;
-        `uvm_fatal("TB_TOP", "Global simulation timeout (50 ms)")
+        #60000ms;
+        `uvm_fatal("TB_TOP", "Global simulation timeout (60 s)")
     end
 
     // ----------------------------------------------------------------

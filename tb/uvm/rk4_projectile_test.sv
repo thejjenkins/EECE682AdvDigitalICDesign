@@ -126,7 +126,7 @@ class rk4_projectile_test extends rk4_base_test;
                         v0, proj_scb.rx_bytes.size()), UVM_MEDIUM)
             end
             begin
-                #5ms;
+                #1500ms;
                 `uvm_error(get_type_name(),
                     $sformatf("  TIMEOUT for v0=0x%08h (bytes=%0d)",
                         v0, proj_scb.rx_bytes.size()))

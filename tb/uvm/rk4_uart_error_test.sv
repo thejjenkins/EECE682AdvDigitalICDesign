@@ -85,7 +85,7 @@ class rk4_uart_error_test extends rk4_base_test;
                         env.scb.rx_bytes.size()), UVM_MEDIUM)
             end
             begin
-                #5ms;
+                #1500ms;
                 `uvm_error(get_type_name(), "Timeout waiting for done marker after error injection")
             end
         join_any

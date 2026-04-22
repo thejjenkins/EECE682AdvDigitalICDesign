@@ -46,7 +46,7 @@ class rk4_base_test extends uvm_test;
                         env.scb.rx_bytes.size(), $time), UVM_MEDIUM)
             end
             begin
-                #5ms;
+                #1500ms;
                 `uvm_info(get_type_name(),
                     $sformatf("TIMEOUT — scb state: bytes=%0d  pairs=%0d  done=%0b",
                         env.scb.rx_bytes.size(), env.scb.data_pair_count,
@@ -69,9 +69,14 @@ class rk4_base_test extends uvm_test;
             $sformatf("rst_n=%b  uart_rx=%b before reset @ %0t",
                 vif.rst_n, vif.uart_rx, $time), UVM_FULL)
         vif.rst_n   = 1'b0;
+        vif.trst_n  = 1'b0;
         vif.uart_rx = 1'b1;
+        vif.tms     = 1'b0;
+        vif.tdi     = 1'b0;
+        vif.tck     = 1'b0;
         repeat (2000) @(posedge vif.clk);
-        vif.rst_n = 1'b1;
+        vif.rst_n  = 1'b1;
+        vif.trst_n = 1'b1;
         repeat (500) @(posedge vif.clk);
         `uvm_info(get_type_name(), "Reset released", UVM_MEDIUM)
         `uvm_info(get_type_name(),
