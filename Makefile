@@ -45,6 +45,9 @@ lint:
 sim-chip:
 	$(XRUN) -timescale 1ns/1ps $(RTL_DIR)/chip.v $(TSMC_PDK_V)/tcb018gbwp7t.v $(IO_PIN)/tpd018nv.v
 
+sim-chip-final:
+	$(XRUN) -timescale 1ns/1ps $(RTL_DIR)/final_chip.v $(TSMC_PDK_V)/tcb018gbwp7t.v $(IO_PIN)/tpd018nv.v
+
 # --- UVM testbench ---
 uvm:
 	$(MAKE) -C tb/uvm sim
