@@ -32,9 +32,13 @@ module chip(clk, rst_n, uart_rx, uart_tx, test_in,
   PDDW1216CDG Pad_IO_tms_0(     .I(1'b0), .DS(1'b0), .OEN(1'b1), .PAD(tms),     .C(wire_tms),     .PE(1'b0), .IE(1'b1) );
   PDDW1216CDG Pad_IO_trst_n_0(  .I(1'b0), .DS(1'b0), .OEN(1'b1), .PAD(trst_n),  .C(wire_trst_n),  .PE(1'b0), .IE(1'b1) );
   PDDW1216CDG Pad_IO_tdi_0(     .I(1'b0), .DS(1'b0), .OEN(1'b1), .PAD(tdi),     .C(wire_tdi),     .PE(1'b0), .IE(1'b1) );
+  PDDW1216CDG Pad_IO_dft_sdi_0( .I(1'b0), .DS(1'b0), .OEN(1'b1), .PAD(dft_sdi), .C(wire_dft_sdi), .PE(1'b0), .IE(1'b1) );
+  PDDW1216CDG Pad_IO_dft_sen_0( .I(1'b0), .DS(1'b0), .OEN(1'b1), .PAD(dft_sen), .C(wire_dft_sen), .PE(1'b0), .IE(1'b1) );
 
   // outputs
   PDDW1216CDG Pad_IO_uart_tx_0( .I(wire_uart_tx), .DS(1'b0), .OEN(1'b0), .PAD(uart_tx), .C(),  .PE(1'b0), .IE(1'b0) );
   PDDW1216CDG Pad_IO_test_out_0(.I(wire_test_out),.DS(1'b0), .OEN(1'b0), .PAD(test_out),.C(),  .PE(1'b0), .IE(1'b0) );
   PDDW1216CDG Pad_IO_tdo_0(     .I(wire_tdo),     .DS(1'b0), .OEN(1'b0), .PAD(tdo),     .C(),  .PE(1'b0), .IE(1'b0) );
+  PDDW1216CDG Pad_IO_dft_sdo_0( .I(wire_dft_sdo), .DS(1'b0), .OEN(1'b0), .PAD(dft_sdo), .C(),  .PE(1'b0), .IE(1'b0) );
+
 endmodule
