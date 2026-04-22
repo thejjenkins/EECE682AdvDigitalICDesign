@@ -102,6 +102,9 @@ synth-dft:
 synth-chip:
 	cd $(SYNTH_DIR) && genus -f chip_script_adv.tcl
 
+synth-chip-final:
+	cd $(SYNTH_DIR) && genus -f final_chip_script_adv.tcl
+
 # --- ATPG (Modus) ---
 atpg:
 	cd $(TEST_DIR) && modus -f modus.tcl
