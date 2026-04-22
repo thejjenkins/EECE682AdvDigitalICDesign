@@ -6,6 +6,7 @@ class rk4_jtag_test extends rk4_base_test;
     localparam [2:0] IR_IDCODE   = 3'b001;
     localparam [2:0] IR_DBG_ADDR = 3'b010;
     localparam [2:0] IR_DBG_DATA = 3'b011;
+    localparam [2:0] IR_BYPASS1  = 3'b111;
 
     localparam [31:0] EXPECTED_IDCODE = 32'hEECE_00DE;
 
@@ -114,6 +115,8 @@ class rk4_jtag_test extends rk4_base_test;
 
         apply_reset();
 
+        check_inverter();
+
         // Allow a few clocks for TAP to settle after reset
         repeat (10) @(posedge vif.clk);
 
@@ -137,11 +140,11 @@ class rk4_jtag_test extends rk4_base_test;
                     EXPECTED_IDCODE, tdo_data))
 
         // =============================================================
-        //  TEST 2: BYPASS test
+        //  TEST 2a: BYPASS0 test (IR=000)
         //  In bypass mode the 1-bit register inserts a 1-cycle delay.
         //  Shift 8 bits in and verify they come back shifted by 1.
         // =============================================================
-        `uvm_info(get_type_name(), "TEST 2: BYPASS test", UVM_MEDIUM)
+        `uvm_info(get_type_name(), "TEST 2a: BYPASS0 test", UVM_MEDIUM)
 
         jtag_shift_ir(IR_BYPASS0);
         begin
@@ -150,52 +153,113 @@ class rk4_jtag_test extends rk4_base_test;
             pattern_in = 8'hA5;
             jtag_shift_dr(8, {24'h0, pattern_in}, raw_out);
             pattern_out = raw_out[7:0];
-            // Bit 0 of TDO is the captured bypass reg (0), then bits 1-7
-            // are the delayed version of input bits 0-6
             if (pattern_out[7:1] === pattern_in[6:0])
                 `uvm_info(get_type_name(),
-                    $sformatf("BYPASS PASS: in=0x%02h, out=0x%02h",
+                    $sformatf("BYPASS0 PASS: in=0x%02h, out=0x%02h",
                         pattern_in, pattern_out), UVM_MEDIUM)
             else
                 `uvm_error(get_type_name(),
-                    $sformatf("BYPASS FAIL: in=0x%02h, out=0x%02h (expected delayed pattern)",
+                    $sformatf("BYPASS0 FAIL: in=0x%02h, out=0x%02h (expected delayed pattern)",
                         pattern_in, pattern_out))
         end
 
         // =============================================================
-        //  TEST 3: Debug register reads after RK4 computation
-        //  Load a program, run it, wait for completion, then read
-        //  debug registers via JTAG and verify plausible values.
+        //  TEST 2b: BYPASS1 test (IR=111)
         // =============================================================
-        `uvm_info(get_type_name(), "TEST 3: Debug register reads", UVM_MEDIUM)
+        `uvm_info(get_type_name(), "TEST 2b: BYPASS1 test", UVM_MEDIUM)
+
+        jtag_shift_ir(IR_BYPASS1);
+        begin
+            logic [7:0] pattern_in, pattern_out;
+            logic [31:0] raw_out;
+            pattern_in = 8'h5A;
+            jtag_shift_dr(8, {24'h0, pattern_in}, raw_out);
+            pattern_out = raw_out[7:0];
+            if (pattern_out[7:1] === pattern_in[6:0])
+                `uvm_info(get_type_name(),
+                    $sformatf("BYPASS1 PASS: in=0x%02h, out=0x%02h",
+                        pattern_in, pattern_out), UVM_MEDIUM)
+            else
+                `uvm_error(get_type_name(),
+                    $sformatf("BYPASS1 FAIL: in=0x%02h, out=0x%02h (expected delayed pattern)",
+                        pattern_in, pattern_out))
+        end
+
+        // =============================================================
+        //  TEST 3: Debug register reads DURING and AFTER RK4 computation
+        //  Load a program, run it, and poll debug registers via JTAG
+        //  while the FSM is actively computing to toggle s_* CDC signals.
+        //  After completion, verify post-idle values.
+        // =============================================================
+        `uvm_info(get_type_name(), "TEST 3: Debug register reads (active + post-idle)", UVM_MEDIUM)
 
         seq = rk4_base_sequence::type_id::create("seq");
         seq.start(env.agent.sqr);
 
-        `uvm_info(get_type_name(), "Sequence sent — waiting for done marker", UVM_MEDIUM)
+        `uvm_info(get_type_name(), "Sequence sent -- starting concurrent JTAG poll", UVM_MEDIUM)
 
-        fork
-            begin
-                wait (env.scb.done_marker_received);
-                `uvm_info(get_type_name(),
-                    $sformatf("Done marker received, bytes=%0d",
-                        env.scb.rx_bytes.size()), UVM_MEDIUM)
-            end
-            begin
-                #1500ms;
-                `uvm_error(get_type_name(), "Timeout waiting for done marker")
-            end
-        join_any
-        disable fork;
-
-        // Let system settle
-        repeat (100) @(posedge vif.clk);
-
-        // Re-init JTAG TAP
         jtag_reset();
         jtag_goto_rti();
 
-        // Read FSM status (addr 0x1): should show not-busy after completion
+        begin
+            bit done_flag = 0;
+            int poll_passes = 0;
+
+            fork
+                // Thread 1: wait for done marker
+                begin
+                    wait (env.scb.done_marker_received);
+                    done_flag = 1;
+                    `uvm_info(get_type_name(),
+                        $sformatf("Done marker received, bytes=%0d",
+                            env.scb.rx_bytes.size()), UVM_MEDIUM)
+                end
+
+                // Thread 2: poll all debug registers while FSM is computing
+                begin
+                    while (!done_flag) begin
+                        for (int addr = 0; addr <= 8; addr++) begin
+                            logic [31:0] dbg_val;
+                            if (done_flag) break;
+                            jtag_read_dbg_reg(addr[3:0], dbg_val);
+                            `uvm_info(get_type_name(),
+                                $sformatf("POLL[%0d] DBG_REG[0x%01h] = 0x%08h",
+                                    poll_passes, addr, dbg_val), UVM_FULL)
+                        end
+                        poll_passes++;
+                    end
+                end
+
+                // Thread 3: timeout safety
+                begin
+                    #1500ms;
+                    done_flag = 1;
+                    `uvm_error(get_type_name(), "Timeout waiting for done marker")
+                end
+            join_any
+            disable fork;
+
+            `uvm_info(get_type_name(),
+                $sformatf("Active polling complete: %0d full sweeps of addresses 0x0-0x8",
+                    poll_passes), UVM_MEDIUM)
+        end
+
+        // Let system settle after done marker
+        repeat (100) @(posedge vif.clk);
+
+        // Re-init JTAG TAP for post-idle reads
+        jtag_reset();
+        jtag_goto_rti();
+
+        // Read all 9 valid addresses post-completion
+        for (int addr = 0; addr <= 8; addr++) begin
+            logic [31:0] post_val;
+            jtag_read_dbg_reg(addr[3:0], post_val);
+            `uvm_info(get_type_name(),
+                $sformatf("POST DBG_REG[0x%01h] = 0x%08h", addr, post_val), UVM_MEDIUM)
+        end
+
+        // Verify FSM not busy (addr 0x1, bit 6)
         begin
             logic [31:0] status_val;
             jtag_read_dbg_reg(4'h1, status_val);
@@ -203,42 +267,18 @@ class rk4_jtag_test extends rk4_base_test;
                 $sformatf("DBG_REG[0x1] (status) = 0x%08h  busy=%0b  f_active=%0b  fsm_state=%0d",
                     status_val, status_val[6], status_val[7], status_val[5:0]), UVM_MEDIUM)
             if (status_val[6] === 1'b0)
-                `uvm_info(get_type_name(), "FSM not busy after completion — PASS", UVM_MEDIUM)
+                `uvm_info(get_type_name(), "FSM not busy after completion -- PASS", UVM_MEDIUM)
             else
-                `uvm_error(get_type_name(), "FSM still busy after done marker — FAIL")
+                `uvm_error(get_type_name(), "FSM still busy after done marker -- FAIL")
         end
 
-        // Read rf_t (addr 0x2)
-        begin
-            logic [31:0] t_val;
-            jtag_read_dbg_reg(4'h2, t_val);
-            `uvm_info(get_type_name(),
-                $sformatf("DBG_REG[0x2] (rf_t) = 0x%08h", t_val), UVM_MEDIUM)
-        end
-
-        // Read rf_y (addr 0x3)
-        begin
-            logic [31:0] y_val;
-            jtag_read_dbg_reg(4'h3, y_val);
-            `uvm_info(get_type_name(),
-                $sformatf("DBG_REG[0x3] (rf_y) = 0x%08h", y_val), UVM_MEDIUM)
-        end
-
-        // Read dt (addr 0x4)
-        begin
-            logic [31:0] dt_val;
-            jtag_read_dbg_reg(4'h4, dt_val);
-            `uvm_info(get_type_name(),
-                $sformatf("DBG_REG[0x4] (dt) = 0x%08h", dt_val), UVM_MEDIUM)
-        end
-
-        // Read an unused address (0xF) — should return zero
+        // Read unused address (0xF) -- should return zero
         begin
             logic [31:0] unused_val;
             jtag_read_dbg_reg(4'hF, unused_val);
             if (unused_val === 32'h0)
                 `uvm_info(get_type_name(),
-                    "DBG_REG[0xF] (unused) = 0x00000000 — PASS", UVM_MEDIUM)
+                    "DBG_REG[0xF] (unused) = 0x00000000 -- PASS", UVM_MEDIUM)
             else
                 `uvm_error(get_type_name(),
                     $sformatf("DBG_REG[0xF] expected 0, got 0x%08h", unused_val))

@@ -37,6 +37,8 @@ class rk4_projectile_test extends rk4_base_test;
 
         apply_reset();
 
+        check_inverter();
+
         // -----------------------------------------------------------
         //  Test 1: Projectile motion  f(t, v0) = v0 - g*t
         // -----------------------------------------------------------

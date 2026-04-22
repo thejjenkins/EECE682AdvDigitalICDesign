@@ -11,6 +11,8 @@ class rk4_alu_coverage_test extends rk4_projectile_test;
 
         apply_reset();
 
+        check_inverter();
+
         // -----------------------------------------------------------
         //  Test 1: Abs-half  f(v0) = |v0| >>> 1
         //  Exercises ALU ops ABS (3'b101) and SHR (3'b100)

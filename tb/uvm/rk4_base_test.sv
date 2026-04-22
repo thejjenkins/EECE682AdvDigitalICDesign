@@ -25,6 +25,8 @@ class rk4_base_test extends uvm_test;
 
         apply_reset();
 
+        check_inverter();
+
         seq = rk4_base_sequence::type_id::create("seq");
         `uvm_info(get_type_name(),
             $sformatf("Starting sequence on sqr @ %0t", $time), UVM_FULL)
@@ -61,6 +63,22 @@ class rk4_base_test extends uvm_test;
         #1us;
         phase.drop_objection(this, "rk4_base_test");
         `uvm_info(get_type_name(), "run_phase: objection dropped", UVM_FULL)
+    endtask
+
+    virtual task check_inverter();
+        `uvm_info(get_type_name(), "Checking inverter (power test)", UVM_MEDIUM)
+        vif.test_in = 1'b0;
+        @(posedge vif.clk);
+        if (vif.test_out !== 1'b1)
+            `uvm_error(get_type_name(),
+                $sformatf("Inverter FAIL: test_in=0, test_out=%b (expected 1)", vif.test_out))
+        vif.test_in = 1'b1;
+        @(posedge vif.clk);
+        if (vif.test_out !== 1'b0)
+            `uvm_error(get_type_name(),
+                $sformatf("Inverter FAIL: test_in=1, test_out=%b (expected 0)", vif.test_out))
+        vif.test_in = 1'b0;
+        `uvm_info(get_type_name(), "Inverter check passed", UVM_MEDIUM)
     endtask
 
     virtual task apply_reset();

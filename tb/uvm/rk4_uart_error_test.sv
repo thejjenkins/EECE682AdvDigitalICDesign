@@ -20,6 +20,8 @@ class rk4_uart_error_test extends rk4_base_test;
 
         apply_reset();
 
+        check_inverter();
+
         // ---------------------------------------------------------------
         //  Error injection 1: false start glitch
         //  Drive rx low just long enough for the synchronizer to see it,
