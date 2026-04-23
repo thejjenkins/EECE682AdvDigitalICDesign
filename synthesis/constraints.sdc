@@ -20,12 +20,26 @@
 # set_input_delay  -clock clk_100MHz 2.0 [remove_from_collection [all_inputs]  [get_ports {clk_100MHz}]]
 # set_output_delay -clock clk_100MHz 2.0 [remove_from_collection [all_outputs] [get_ports {clk_1Hz}]]
 
-create_clock -name clk -period 10 -waveform {0 5} [get_port "clk"]
+create_clock -name clk -period 100 -waveform {0 50} [get_ports clk]
+create_clock -name tck -period 100 -waveform {0 50} [get_ports tck]
 
-set_clock_transition -rise 0.1 [get_clocks "clk"]
-set_clock_transition -fall 0.1 [get_clocks "clk"]
+set_clock_transition -rise 0.1 [get_clocks {clk tck}]
+set_clock_transition -fall 0.1 [get_clocks {clk tck}]
 
-set_clock_uncertainty 0.01 [get_clocks "clk"]
+set_clock_uncertainty 0.01 [get_clocks {clk tck}]
 
-set_input_delay -clock clk 2 [all_inputs]
-set_output_delay -clock clk 2 [all_outputs]
+# Functional and test clocks are independent
+set_clock_groups -asynchronous -group {clk} -group {tck}
+
+# Functional I/O only
+set_input_delay -clock clk 2 \
+  [remove_from_collection [all_inputs] \
+    [get_ports {clk tck tms trst_n tdi dft_sen dft_sdi dft_sdi_1 dft_sdi_2}]]
+
+set_output_delay -clock clk 2 \
+  [remove_from_collection [all_outputs] \
+    [get_ports {tdo dft_sdo dft_sdo_1 dft_sdo_2}]]
+
+# Test I/O
+set_input_delay -clock tck 2 [get_ports {tdi dft_sdi dft_sdi_1 dft_sdi_2}]
+set_output_delay -clock tck 2 [get_ports {tdo dft_sdo dft_sdo_1 dft_sdo_2}]

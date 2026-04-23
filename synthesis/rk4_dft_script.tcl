@@ -12,7 +12,7 @@ read_sdc constraints.sdc
 # DFT
 set_db dft_scan_style muxed_scan 
 set_db dft_prefix dft_
-set_db [get_db modules jtag_tap] .dft_dont_scan true
+# set_db [get_db modules jtag_tap] .dft_dont_scan true
 define_shift_enable -name scan_enable -active high -create_port dft_sen
 
 # This is what was missing - tells DFT engine which clock to use for scan shift
@@ -43,7 +43,7 @@ set_db design:rk4_projectile_top .dft_min_number_of_scan_chains 1
 # set_db design:rk4_top .dft_mix_clock_edges_in_scan_chains true
 # set_db [get_db insts *jtag*] .dft_dont_scan true
 # set_db [get_db insts *ir*] .dft_dont_scan true
-define_scan_chain -name top_chain -sdi dft_sdi -sdo dft_sdo -create_ports -non_shared_output
+define_scan_chain -name top_chain -sdi dft_sdi -sdo dft_sdo -create_ports
 
 connect_scan_chains -auto_create_chains
 syn_opt -incremental
