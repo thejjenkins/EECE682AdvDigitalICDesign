@@ -27,6 +27,7 @@ XRUN_ARGS = -sv -timescale 1ns/1ps -access +rwc
        uvm-gate uvm-gate-gui uvm-gate-regress uvm-gate-cov uvm-gate-cov-gui uvm-gate-clean \
        synth synth-dft synth-chip atpg lec lec-dft \
        innovus-setup check-setup \
+       drc-copy drc-dummy-od drc-dummy-metal drc-fill tapeout \
        clean clean-all
 
 compile:
@@ -132,6 +133,29 @@ check-setup:
 	@echo "IO_PIN     = $(IO_PIN)"
 	@which innovus
 	@which xrun
+
+# --- TSMC DRC Dummy Fill & Tapeout ---
+DRC_SRC_DIR  = /projects/howard/innovus
+DUMMY_OD_PO  = Dummy_OD_PO_PVS_0.18um.215_2a
+DUMMY_METAL  = Dummy_Metal_PVS_0.18um.215a
+PVS          = /apps/PEGASUS232/23.24.000/tools.lnx86/Pegasus/bin/64bit/pvs
+
+drc-copy:
+	cp $(DRC_SRC_DIR)/$(DUMMY_METAL) $(PROJ_ROOT)/
+	cp $(DRC_SRC_DIR)/$(DUMMY_OD_PO) $(PROJ_ROOT)/
+
+drc-dummy-od: drc-copy
+	$(PVS) -drc $(DUMMY_OD_PO)
+
+drc-dummy-metal: drc-copy
+	$(PVS) -drc $(DUMMY_METAL)
+
+drc-fill: drc-dummy-od drc-dummy-metal
+
+tapeout: drc-fill
+	strmin -library final_tapeout -strmFile "DOD.gds,DM.gds" -writeMode rename
+	strmout -library final_tapeout -strmFile final_tapeout.gds
+	@echo "=== final_tapeout.gds created in $(PROJ_ROOT) ==="
 
 clean:
 	rm -rf xcelium.d INCA_libs xrun.log xrun.history waves.shm
